@@ -17,7 +17,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1",
+                 "muhammad-akmal53-myportofolio.pws.cs.ui.ac.id."]
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -56,12 +57,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'myportofolio.urls'
+ROOT_URLCONF = 'portofolio.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,7 +74,9 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'myportofolio.wsgi.application'
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+WSGI_APPLICATION = 'portofolio.wsgi.application'
 
 
 # Database
