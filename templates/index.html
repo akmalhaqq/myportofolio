@@ -1,61 +1,126 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    >
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+
     <title>Muhammad Akmal Haqqani - Portofolio</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-    <link rel = "stylesheet" href = "/static/css/style.css">
-</head>
-<body>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
     <header class="site-header">
-        <div class="container">
-            <a href="#profile" class="brand" >Muhammad Akmal Haqqani</a>
-            <nav>
-                <a href="#profile">Profile</a>
-            </nav>
+      <nav class="nav_container">
+        <a href="#profile" class="nav_logo">Akmal</a>
+
+        <!--Menu Toggle-->
+        <input type="checkbox" id="nav-toggle" class="nav_checkbox" />
+
+        <div class="nav_menu" id="nav-menu">
+          <ul class="nav_list">
+            <li>
+              <a href="#profile" class="nav_link active-link">Home</a>
+            </li>
+            <li>
+              <a href="#about" class="nav_link">About</a>
+            </li>
+            <li>
+              <a href="#skills" class="nav_link">Skills</a>
+            </li>
+            <li>
+              <a href="#projects" class="nav_link">Projects</a>
+            </li>
+
+            <li>
+              <a href="#contact" class="nav_contact">Contact me</a>
+            </li>
+          </ul>
+
+          <label for="nav-toggle" class="nav_close" aria-label="Close menu">
+            <i class="ri-close-large-line"></i>
+          </label>
         </div>
+        <label for="nav-toggle" class="nav_toggle" aria-label="Open menu">
+          <i class="ri-menu-4-fill"></i>
+        </label>
+      </nav>
     </header>
+
     <main>
-        <section class="hero" id="profile">
-            <div class="container hero-grid">
-                <div class="hero-identity">
-                    <p class="hero-kicker">Computer Science &middot; Universitas Indonesia</p>
-                    <h1>Muhammad Akmal Haqqani</h1>
-                </div>
-                <div class="hero-photo">
-                    <div class="photo-block"></div>
-                    <img class = "avatar" src="/static/img/akmal.jpg" alt="Photo Profile Akmal">
-                </div>
-                <div class="hero-details">
-                    <p class="bio">Hi, I’m Akmal, a Computer Science student at Universitas Indonesia fascinated by AI, data, and mathematics. I like digging into problems and understanding what makes things work.
-This site is where I share what I discover.
-</p>
-                    <dl class="meta-list">
-                        <div class="meta-row">
-                            <dt>NPM</dt>
-                            <dd>2506548295</dd>
-                        </div>
-                        <div class="meta-row">
-                            <dt>Program</dt>
-                            <dd>S1 Ilmu Komputer</dd>
-                        </div>
-                    </dl>
-                    <div class = "social-links">
-                        <a href="https://github.com/akmalhaqq" class="social-link" target="_blank" rel="noopener noreferrer">GitHub</a>
-                        <a href="https://www.linkedin.com/in/akmalhaqqani/" class="social-link" target="_blank" rel="noopener noreferrer">Linkedin</a>
-                        <a href="mailto:haqqaniakmal@gmail.com" class="social-link" target="_blank" rel="noopener noreferrer">Email</a>
-                    </div>
-                </div>
+      <section class="hero" id="profile">
+        <div class="container hero-grid">
+          <div class="hero-identity">
+            <p class="hero-kicker">
+              Computer Science &middot; Universitas Indonesia
+            </p>
+            <h1>Muhammad Akmal Haqqani</h1>
+          </div>
+          <div class="hero-photo">
+            <div class="photo-block"></div>
+            <img
+              class="avatar"
+              src="/static/img/akmal.jpg"
+              alt="Photo Profile Akmal"
+            />
+          </div>
+          <div class="hero-details">
+            <p class="bio">
+              Hi, I’m Akmal, a Computer Science student at Universitas Indonesia
+              fascinated by AI, data, and mathematics. I like digging into
+              problems and understanding what makes things work. This site is
+              where I share what I discover.
+            </p>
+            <dl class="meta-list">
+              <div class="meta-row">
+                <dt>NPM</dt>
+                <dd>2506548295</dd>
+              </div>
+              <div class="meta-row">
+                <dt>Program</dt>
+                <dd>S1 Ilmu Komputer</dd>
+              </div>
+            </dl>
+            <div class="social-links">
+              <a
+                href="https://github.com/akmalhaqq"
+                class="social-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                >GitHub</a
+              >
+              <a
+                href="https://www.linkedin.com/in/akmalhaqqani/"
+                class="social-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Linkedin</a
+              >
+              <a
+                href="mailto:haqqaniakmal@gmail.com"
+                class="social-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Email</a
+              >
             </div>
-        </section>
+          </div>
+        </div>
+      </section>
     </main>
     <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 2026 Akmal. Fakultas Ilmu Komputer, Universitas Indonesia</p>
-        </div>
+      <div class="container">
+        <p>&copy; 2026 Akmal. Fakultas Ilmu Komputer, Universitas Indonesia</p>
+      </div>
     </footer>
-</body>
+  </body>
 </html>
