@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    >
     <link
       href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css"
       rel="stylesheet"
@@ -38,6 +37,9 @@
               <a href="#skills" class="nav_link nav-skills">Skills</a>
             </li>
             <li>
+                <a href="#experience" class="nav_link nav-experience">Experience</a>
+            </li>
+            <li>
               <a href="#projects" class="nav_link nav-projects">Projects</a>
             </li>
 
@@ -63,7 +65,7 @@
             <p class="hero-kicker">
               Computer Science &middot; Universitas Indonesia
             </p>
-            <h1>Muhammad Akmal Haqqani</h1>
+            <h1>Muhammad <span class="akmal">Akmal</span> Haqqani</h1>
           </div>
           <div class="hero-photo">
             <div class="photo-block"></div>
@@ -122,12 +124,12 @@
     <section class="about_section" id="about">
       <div class="container">
         <div class="section-heading">
-          <p class="section-kicker">About</p>
+          <p class="section-kicker reveal">About</p>
           <h2>A little more about me.</h2>
         </div>
 
         <div class="about-grid">
-          <div class="about-text">
+          <div class="about-text reveal">
             <p>
               I’m drawn to the intersection of data, artificial intelligence,
               and mathematics. I enjoy finding patterns in data, building
@@ -145,7 +147,7 @@
               a fan of <em>Steins;Gate</em> — so I guess the stereotype got me.
             </p>
           </div>
-          <article class="about-highlight">
+          <article class="about-highlight reveal">
             <span>Currently</span>
             <h3>Computer Science Student</h3>
             <p>Universitas Indonesia</p>
@@ -155,38 +157,366 @@
     </section>
     <section class="skills-section" id="skills">
       <div class="container">
-        <div class="section-heading">
-          <p class="section-kicker">Skills</p>
-          <h2>Things I work with.</h2>
+        <p class="section-kicker reveal">What I work with</p>
+
+        <div class="skills-header reveal">
+          <h2>Skills</h2>
+          <p>
+            Tools, languages, and concepts I use to turn ideas into working
+            systems.
+          </p>
         </div>
 
-        <div class="skills-grid">
-          <article class="skill-card">
-            <i class="ri-code-s-slash-line"></i>
-            <h3>Programming</h3>
-            <p>Python, Java, and C++</p>
-          </article>
-          <article class="skill-card">
-            <i class="ri-brain-line"></i>
-            <h3>AI & Machine Learning</h3>
-            <p>Artificial intelligence and machine learning</p>
+        <div class="skills-list">
+          <!-- Programming Languages -->
+          <article class="skill-row reveal">
+            <div class="skill-title">
+              <div class="skill-icon programming-icon">&lt;/&gt;</div>
+
+              <h3>Programming</h3>
+            </div>
+
+            <div class="skill-items">
+              <div class="skill-item">
+                <img
+                  src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"
+                  alt="Python"
+                />
+                <span>Python</span>
+              </div>
+
+              <div class="skill-item">
+                <img
+                  src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg"
+                  alt="Java"
+                />
+                <span>Java</span>
+              </div>
+
+              <div class="skill-item">
+                <img
+                  src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg"
+                  alt="C++"
+                />
+                <span>C++</span>
+              </div>
+            </div>
           </article>
 
-          <article class="skill-card">
-            <i class="ri-bar-chart-box-line"></i>
-            <h3>Data</h3>
-            <p>Data analysis, visualization, and prediction</p>
+          <!-- AI & Machine Learning -->
+          <article class="skill-row reveal">
+            <div class="skill-title">
+              <div class="skill-icon ai-icon">◈</div>
+
+              <h3>AI & Machine Learning</h3>
+            </div>
+
+            <div class="skill-items">
+              <div class="skill-item">
+                <img
+                  src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg"
+                  alt="PyTorch"
+                />
+                <span>PyTorch</span>
+              </div>
+
+              <div class="skill-item">
+                <img
+                  src="static/img/huggingface-color.png"
+                  alt="HF"
+                />
+                <span>HuggingFace</span>
+              </div>
+
+              <div class="skill-item">
+                <img
+                  src="static/img/scikit-learn.png"
+                  alt="Scikit-Learn"
+                />
+                <span>scikit-learn</span>
+              </div>
+
+    
           </article>
-          <article class="skill-card">
-            <i class="ri-function-line"></i>
-            <h3>Mathematics</h3>
-            <p>Calculus, statistics, probability and mathematical reasoning</p>
+
+          <!-- Data & Tools -->
+          <article class="skill-row reveal">
+            <div class="skill-title">
+              <div class="skill-icon data-icon">▦</div>
+
+              <h3>Data & Tools</h3>
+            </div>
+
+            <div class="skill-items">
+              <div class="skill-item">
+                <img
+                  src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg"
+                  alt="SQL"
+                />
+                <span>SQL</span>
+              </div>
+
+              <div class="skill-item">
+                <img
+                  src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jupyter/jupyter-original.svg"
+                  alt="Jupyter"
+                />
+                <span>Jupyter</span>
+              </div>
+
+              <div class="skill-item">
+                <img
+                  src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg"
+                  alt="Git"
+                />
+                <span>Git</span>
+              </div>
+
+              <div class="skill-item">
+                <img
+                  src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg"
+                  alt="GitHub"
+                />
+                <span>GitHub</span>
+              </div>
+
+              <div class="skill-item">
+                <img
+                  src="/static/img/Pandas.png"
+                  alt="Pandas"
+                />
+                <span>Pandas</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Mathematics -->
+          <article class="skill-row reveal">
+            <div class="skill-title">
+              <div class="skill-icon math-icon">∑</div>
+
+              <h3>Mathematics</h3>
+            </div>
+
+            <div class="skill-items math-items">
+              <span>Calculus</span>
+              <span>Statistics</span>
+              <span>Probability</span>
+              <span>Mathematical Reasoning</span>
+            </div>
           </article>
         </div>
       </div>
     </section>
 
-    <footer class="site-footer" id="contact">
+<!--EXPERIENCE-->
+<section class="experience-section" id="experience">
+    <div class="container">
+
+        <p class="section-kicker reveal">
+            Where I've contributed
+        </p>
+
+        <div class="experience-heading reveal">
+            <h2>Experience</h2>
+
+            <p>A collection of roles, responsibilities,
+                and experiences that shaped how I work.</p>
+        </div>
+
+        <div class="experience-list">
+            <!-- Experience 01 -->
+            <article class="experience-item reveal">
+
+                <div class="experience-index">
+                    01
+                </div>
+
+                <div class="experience-content">
+
+                    <div class="experience-meta">
+                        <span>2026 — Present</span>
+                    </div>
+
+                    <h3>
+                        Head of Business Development
+                    </h3>
+
+                    <p class="experience-company">
+                        DDP-0 Fasilkom UI
+                    </p>
+
+                    <p class="experience-description">
+                        Lorem ipsum dolor sit amet, consectetur
+                        adipiscing elit. Integer vitae justo
+                        eget lorem tincidunt posuere.
+                    </p>
+
+                    <div class="experience-tags">
+                        <span>Leadership</span>
+                        <span>Business Development</span>
+                        <span>Finance</span>
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- Experience 02 -->
+            <article class="experience-item reveal">
+
+                <div class="experience-index">
+                    02
+                </div>
+
+                <div class="experience-content">
+
+                    <div class="experience-meta">
+                        <span>2026 — Present</span>
+                    </div>
+
+                    <h3>
+                        Coordinator
+                    </h3>
+
+                    <p class="experience-company">
+                        Teaching Assistants — Discrete Mathematics 1
+                    </p>
+
+                    <p class="experience-description">
+                        Lorem ipsum dolor sit amet, consectetur
+                        adipiscing elit. Integer vitae justo
+                        eget lorem tincidunt posuere.
+                    </p>
+
+                    <div class="experience-tags">
+                        <span>Coordination</span>
+                        <span>Academic</span>
+                        <span>Leadership</span>
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- Experience 03 -->
+            <article class="experience-item reveal">
+
+                <div class="experience-index">
+                    03
+                </div>
+
+                <div class="experience-content">
+
+                    <div class="experience-meta">
+                        <span>2026 — Present</span>
+                    </div>
+
+                    <h3>
+                        Teaching Assistant
+                    </h3>
+
+                    <p class="experience-company">
+                        Discrete Mathematics 1
+                    </p>
+
+                    <p class="experience-description">
+                        Lorem ipsum dolor sit amet, consectetur
+                        adipiscing elit. Integer vitae justo
+                        eget lorem tincidunt posuere.
+                    </p>
+
+                    <div class="experience-tags">
+                        <span>Teaching</span>
+                        <span>Discrete Mathematics</span>
+                        <span>Mentoring</span>
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- Experience 04 -->
+            <article class="experience-item reveal">
+
+                <div class="experience-index">
+                    04
+                </div>
+
+                <div class="experience-content">
+
+                    <div class="experience-meta">
+                        <span>2025 — Present</span>
+                    </div>
+
+                    <h3>
+                        Core Team — Business Development
+                    </h3>
+
+                    <p class="experience-company">
+                        Google Developer Group on Campus UI
+                    </p>
+
+                    <p class="experience-description">
+                        Lorem ipsum dolor sit amet, consectetur
+                        adipiscing elit. Integer vitae justo
+                        eget lorem tincidunt posuere.
+                    </p>
+
+                    <div class="experience-tags">
+                        <span>Partnerships</span>
+                        <span>Business Development</span>
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- Experience 05 -->
+            <article class="experience-item reveal">
+
+                <div class="experience-index">
+                    05
+                </div>
+
+                <div class="experience-content">
+
+                    <div class="experience-meta">
+                        <span>2025</span>
+                    </div>
+
+                    <h3>
+                        Financial & Quality Intern
+                    </h3>
+
+                    <p class="experience-company">
+                        AIESEC Universitas Indonesia
+                    </p>
+
+                    <p class="experience-description">
+                        Lorem ipsum dolor sit amet, consectetur
+                        adipiscing elit. Integer vitae justo
+                        eget lorem tincidunt posuere.
+                    </p>
+
+                    <div class="experience-tags">
+                        <span>Finance</span>
+                        <span>Quality</span>
+                        <span>Operations</span>
+                    </div>
+
+                </div>
+
+            </article>
+        </div>
+    </div>
+</section>
+
+    <footer class="site-footer reveal" id="contact">
       <div class="container">
         <div class="footer-main">
           <p class="footer-kicker">Get in touch</p>
