@@ -1,14 +1,17 @@
 from django.test import TestCase
 from django.urls import reverse
-from django.utils import timezone
 from main.models import Experience
+
 
 class MainTest(TestCase):
     def setUp(self):
         self.experience = Experience.objects.create(
+            order=1,
             title="Asisten Dosen PBP",
+            company="Fasilkom UI",
+            period="2026",
             description="Membantu mahasiswa memahami pengembangan web.",
-            category="part-time",
+            tags="Teaching, Mentoring",
         )
 
     def test_main_url_is_accessible(self):
@@ -24,28 +27,19 @@ class MainTest(TestCase):
 
     def test_experience_model(self):
         self.assertEqual(str(self.experience), "Asisten Dosen PBP")
-        self.assertEqual(self.experience.category, "part-time")
-        self.assertTrue(self.experience.is_ongoing)
+        self.assertEqual(self.experience.tag_list(), ["Teaching", "Mentoring"])
 
     def test_experience_page(self):
         response = self.client.get(reverse("main:show_experience"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
         self.assertContains(response, self.experience.title)
+        self.assertContains(response, self.experience.company)
         self.assertContains(response, self.experience.description)
-        self.assertContains(response, "Part-Time")
-        self.assertContains(response, "Sedang berlangsung")
+        self.assertContains(response, "Teaching")
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
 
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
         response = self.client.get(reverse("main:show_experience"))
         self.assertContains(response, "Belum ada pengalaman yang ditambahkan.")
-
-    def test_completed_experience(self):
-        self.experience.ended_at = timezone.now()
-        self.experience.save()
-        response = self.client.get(reverse("main:show_experience"))
-        self.assertFalse(self.experience.is_ongoing)
-        self.assertContains(response, "Selesai")
-        self.assertNotContains(response, "Sedang berlangsung")
