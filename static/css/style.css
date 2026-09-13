@@ -798,6 +798,7 @@ body:has(#projects:target) .nav-projects::before {
 }
 
 .project-item {
+  position: relative;
   display: grid;
   grid-template-columns: 80px minmax(0, 1fr) 120px;
   gap: 40px;
@@ -805,9 +806,90 @@ body:has(#projects:target) .nav-projects::before {
   padding: 42px 0;
   border-top: 1px solid var(--line);
 
+  overflow: hidden;
   transition:
     padding 0.35s ease,
     border-color 0.35s ease;
+}
+.project-background {
+  position: absolute;
+  z-index: 0;
+
+  top: 0;
+  right: 0;
+
+  width: 55%;
+  height: 100%;
+
+  object-fit: cover;
+  object-position: center;
+
+  opacity: 0.16;
+
+  filter:
+    grayscale(100%)
+    saturate(0.7);
+
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 40%,
+    black 100%
+  );
+
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 40%,
+    black 100%
+  );
+
+  transition:
+    opacity 0.4s ease,
+    transform 0.5s ease,
+    filter 0.4s ease;
+}
+
+.project-item::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle at 78% 50%,
+      rgba(126, 168, 122, 0.13),
+      transparent 35%
+    );
+}
+
+.project-item::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--paper) 0%,
+      rgba(18, 24, 31, 0.96) 32%,
+      rgba(18, 24, 31, 0.72) 58%,
+      rgba(18, 24, 31, 0.35) 100%
+    );
+}
+.project-index,
+.project-content,
+.project-year {
+  position: relative;
+  z-index: 2;
 }
 
 .project-item:last-child {
@@ -978,6 +1060,15 @@ body:has(#projects:target) .nav-projects::before {
 
 .project-item:hover .project-content h3 {
   color: var(--accent);
+}
+.project-item:hover .project-background {
+  opacity: 0.23;
+
+  transform: scale(1.03);
+
+  filter:
+    grayscale(60%)
+    saturate(1);
 }
 
 .reveal {
