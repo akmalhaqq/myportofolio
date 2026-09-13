@@ -48,6 +48,10 @@ class Project(models.Model):
     external_url = models.URLField(
         blank=True
     )
+    image = models.CharField(
+        max_length=255,
+        blank=True
+    )
     year = models.PositiveIntegerField()
 
     class Meta:
@@ -58,6 +62,6 @@ class Project(models.Model):
     def tech_list(self):
         return [
             tech.strip()
-            for tech in self.tech.split(",")
+            for tech in self.tech_stack.split(",")
             
         ]

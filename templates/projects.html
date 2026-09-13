@@ -1,0 +1,189 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      href="static/img/favilogo.png"
+      type="image/gif"
+      sizes="16x16"
+    />
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+
+    <title>Projects - {{name}}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav_container">
+        <a href="{% url 'main:show_main' %}" class="nav_logo">HAQQ. </a>
+
+        <!--Menu Toggle-->
+        <input type="checkbox" id="nav-toggle" class="nav_checkbox" />
+
+        <div class="nav_menu" id="nav-menu">
+          <ul class="nav_list">
+            <li>
+              <a href="{% url 'main:show_main' %}" class="nav_link nav-home"
+                >Home</a
+              >
+            </li>
+            <li>
+              <a
+                href="{% url 'main:show_main' %}#about"
+                class="nav_link nav-about"
+                >About</a
+              >
+            </li>
+            <li>
+              <a
+                href="{% url 'main:show_main' %}#skills"
+                class="nav_link nav-skills"
+                >Skills</a
+              >
+            </li>
+            <li>
+              <a
+                href="{% url 'main:show_experience' %}"
+                class="nav_link nav-experience"
+                >Experience</a
+              >
+            </li>
+            <li>
+              <a href="#projects" class="nav_link nav-projects">Projects</a>
+            </li>
+
+            <li>
+              <a href="#contact" class="nav_contact">Contact me</a>
+            </li>
+          </ul>
+
+          <label for="nav-toggle" class="nav_close" aria-label="Close menu">
+            <i class="ri-close-large-line"></i>
+          </label>
+        </div>
+        <label for="nav-toggle" class="nav_toggle" aria-label="Open menu">
+          <i class="ri-menu-4-fill"></i>
+        </label>
+      </nav>
+    </header>
+
+    <!--Project-->
+
+    <section class="projects-section" id="projects">
+      <div class="projects-header">
+        <p class="projects-eyebrow">PROJECTS</p>
+        <h1 class="projects-heading">
+          Selected works that explore AI, data, and computational problems.
+        </h1>
+      </div>
+
+      <div class="projects-list">
+        {% for project in project_list %}
+        <article class="project-item">
+          {% if project.image %}
+          <img
+            class="project-background"
+            src="{% static project.image %}"
+            alt=""
+            aria-hidden="true"
+          />
+          {% endif %}
+
+          <div class="project-index">
+            {{ forloop.counter|stringformat:"02d" }}
+          </div>
+
+          <div class="project-content">
+            <span class="project-category"> {{project.category}} </span>
+
+            <h3>{{project.title}}</h3>
+
+            <p class="project-description">{{project.description}}</p>
+
+            <div class="project-tech">
+              {% for tech in project.tech_list %}
+              <span>{{ tech }}</span>
+              {% endfor %}
+            </div>
+
+            {% if project.achievement %}
+            <p class="project-achievement">{{project.achievement}}</p>
+            {% endif %}
+            <div class="project-links">
+              {% if project.github_url %}
+              <a
+                href="{{project.github_url}}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub ↗
+              </a>
+              {% endif %} {% if project.external_url %}
+              <a
+                href="{{project.external_url}}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View project ↗
+              </a>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="project-year">{{project.year}}</div>
+        </article>
+
+        {% empty %}
+        <p class="empty-state">Belum ada project yang ditambahkan</p>
+
+        {% endfor %}
+      </div>
+    </section>
+
+    <footer class="site-footer reveal" id="contact">
+      <div class="container">
+        <div class="footer-main">
+          <p class="footer-kicker">Get in touch</p>
+          <h2>Let's connect.</h2>
+          <p>
+            Whether it's about technology, data, or an interesting problem, feel
+            free to reach out.
+          </p>
+          <div class="footer-links">
+            <a href="mailto:haqqaniakmal@gmail.com">Email</a>
+            <a
+              href="https://github.com/akmalhaqq"
+              target="_blank"
+              rel="noopener noreferrer"
+              >GitHub</a
+            >
+            <a
+              href="https://www.linkedin.com/in/akmalhaqqani/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >LinkedIn</a
+            >
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>&copy; 2026 {{name}}.</p>
+          <p>Computer Science · Universitas Indonesia</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

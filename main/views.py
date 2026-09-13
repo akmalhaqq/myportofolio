@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from main.models import Experience
+from main.models import Experience, Project
 # Create your views here.
 def show_main(request):
     context = {
@@ -22,3 +22,12 @@ def show_experience(request):
         "experience_list": Experience.objects.all(),
         }
         return render(request, "experience.html", context)
+
+def show_projects(request):
+      projects = Project.objects.all()
+
+      context = {
+            "project_list": projects,
+      }
+
+      return render(request, "projects.html", context)

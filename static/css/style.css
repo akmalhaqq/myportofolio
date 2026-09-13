@@ -767,6 +767,219 @@ body:has(#projects:target) .nav-projects::before {
   font-weight: 600;
 }
 
+/*PROJECTS*/
+
+.projects-section {
+  padding: 150px 8% 140px;
+  background: var(--paper);
+}
+.projects-header {
+  max-width: 900px;
+  margin-bottom: 80px;
+}
+.projects-eyebrow {
+  margin: 0 0 24px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+}
+
+.projects-heading {
+  margin: 0;
+  max-width: 850px;
+  font-size: clamp(2.5rem, 5vw, 5rem);
+  line-height: 0.98;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+.projects-list {
+  width: 100%;
+}
+
+.project-item {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr) 120px;
+  gap: 40px;
+
+  padding: 42px 0;
+  border-top: 1px solid var(--line);
+
+  transition:
+    padding 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.project-item:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+/* Number */
+
+.project-index {
+  padding-top: 5px;
+
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+
+  color: var(--text-muted);
+
+  transition: color 0.3s ease;
+}
+
+/* content */
+
+.project-content {
+  max-width: 760px;
+}
+.project-category {
+  display: block;
+
+  margin-bottom: 12px;
+
+  color: var(--accent);
+
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.project-content h3 {
+  margin: 0 0 20px;
+
+  font-size: clamp(2rem, 4vw, 3.8rem);
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+
+  transition: color 0.3s ease;
+}
+
+.project-description {
+  max-width: 680px;
+
+  margin: 0 0 24px;
+
+  color: var(--text-muted);
+
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
+/* Technology */
+
+.project-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-tech span {
+  padding: 6px 10px;
+
+  border: 1px solid var(--line);
+  border-radius: 2px;
+
+  color: var(--text-muted);
+
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+}
+
+/* Achievement */
+
+.project-achievement {
+  margin: 22px 0 0;
+
+  color: var(--ink);
+
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* Links */
+
+.project-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+
+  padding-top: 4px;
+}
+
+.project-links a {
+  position: relative;
+
+  color: var(--ink);
+
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+
+  transition: color 0.3s ease;
+}
+
+.project-links a::after {
+  content: "";
+
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+
+  width: 100%;
+  height: 1px;
+
+  background: var(--accent);
+
+  transform: scaleX(0);
+  transform-origin: right;
+
+  transition: transform 0.3s ease;
+}
+
+.project-links a:hover {
+  color: var(--accent);
+}
+
+.project-links a:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Year */
+
+.project-year {
+  padding-top: 4px;
+
+  color: var(--text-muted);
+
+  font-family: monospace;
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+/* Hover */
+
+.project-item:hover {
+  padding-left: 12px;
+  padding-right: 12px;
+
+  border-color: rgba(126, 168, 122, 0.5);
+}
+
+.project-item:hover .project-index {
+  color: var(--accent);
+}
+
+.project-item:hover .project-content h3 {
+  color: var(--accent);
+}
+
 .reveal {
   animation: sectionReveal linear both;
   animation-timeline: view();
@@ -984,6 +1197,32 @@ body:has(#projects:target) .nav-projects::before {
     font-size: 1.4rem;
   }
 
+  /*Projects*/
+  .projects-section {
+    padding: 110px 6% 100px;
+  }
+  .projects-header {
+    margin-bottom: 60px;
+  }
+  .project-item {
+    grid-template-columns: 55px minmax(0, 1fr);
+    gap: 20px;
+  }
+  .project-links {
+    grid-column: 2;
+
+    flex-direction: row;
+    align-items: flex-start;
+
+    padding-top: 0;
+  }
+  .project-year {
+    display: none;
+  }
+  .project-content h3 {
+    font-size: clamp(2rem, 7vw, 3rem);
+  }
+
   /*Footer*/
   .footer-main {
     align-items: flex-start;
@@ -1041,6 +1280,50 @@ body:has(#projects:target) .nav-projects::before {
 
   .experience-tags {
     margin-top: 1.2rem;
+  }
+  /*PROJECTS*/
+
+  .projects-section {
+    padding: 80px 5% 80px;
+  }
+
+  .projects-heading {
+    font-size: 2.5rem;
+  }
+
+  .project-item {
+    grid-template-columns: 1fr;
+    gap: 14px;
+
+    padding: 32px 0;
+  }
+
+  .project-index {
+    padding-top: 0;
+  }
+
+  .project-content {
+    max-width: none;
+  }
+
+  .project-content h3 {
+    font-size: 2.2rem;
+  }
+
+  .project-description {
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  .project-links {
+    grid-column: auto;
+
+    margin-top: 8px;
+  }
+
+  .project-item:hover {
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .footer-bottom {
