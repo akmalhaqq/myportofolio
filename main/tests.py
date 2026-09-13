@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-from main.models import Experience
+from main.models import Experience, Project
 
 
 class MainTest(TestCase):
@@ -14,6 +14,20 @@ class MainTest(TestCase):
             tags="Teaching, Mentoring",
         )
 
+        self.project = Project.objects.create(
+            order = 1,
+            title="Score Prediction",
+            category ="Data Science",
+            description = "A data science project for predicting football match scores.",
+            tech_stack = "Python, Pandas, Machince Learning",
+            achievement="Ranked 39 of 236 participants",
+            github_url="",
+            external_url="",
+            year=2026,
+            image="img/gammafest.png",
+        )
+
+# Experience Test
     def test_main_url_is_accessible(self):
         response = self.client.get(reverse("main:show_main"))
         self.assertEqual(response.status_code, 200)
@@ -43,3 +57,40 @@ class MainTest(TestCase):
         Experience.objects.all().delete()
         response = self.client.get(reverse("main:show_experience"))
         self.assertContains(response, "Belum ada pengalaman yang ditambahkan.")
+
+# Projects Test
+
+    def test_projects_url_is_accessible(self):
+            response = self.client.get(
+            reverse("main:show_projects")
+        )
+            self.assertEqual(response.status_code, 200)
+            self.assertTemplateUsed(response, "projects.html")
+
+    def test_project_is_displayed(self):
+        response = self.client.get(
+            reverse("main:show_projects")
+        )
+
+        self.assertContains(response, self.project.title)
+        self.assertContains(response, self.project.category)
+        self.assertContains(response, self.project.description)
+        self.assertContains(response, "Python")
+        self.assertContains(response, "Pandas")
+        self.assertContains(
+            response,
+            self.project.achievement
+        )
+    def test_empty_projects_page(self):
+        Project.objects.all().delete()
+
+        response = self.client.get(
+            reverse("main:show_projects")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "projects.html")
+        self.assertContains(
+            response,
+            "Belum ada project yang ditambahkan"
+        )
