@@ -1,4 +1,4 @@
-from django.forms import ModelForm, TextInput, Textarea, URLInput
+from django.forms import ModelForm, TextInput, Textarea, URLInput, NumberInput
 from main.models import Project
 
 class ProjectForm(ModelForm):
@@ -6,48 +6,57 @@ class ProjectForm(ModelForm):
         model = Project
         fields = [
             "title",
+            "category",
             "description",
             "tech_stack",
-            "project_url",
-            "project_image_url",
+            "achievement",
+            "github_url",
+            "external_url",
+            "image",
+            "year",
         ]
 
         labels = {
-            "title": "Nama Proyek",
-            "description": "Deskripsi Proyek",
-            "tech_stack": "Teknologi yang Digunakan",
-            "project_url": "URL Proyek",
-            "project_image_url": "URL Gambar Proyek",
+            "title": "Project Title",
+            "category": "Category",
+            "description": "Description",
+            "tech_stack": "Tech Stack",
+            "achievement": "Achievement",
+            "github_url": "GitHub URL",
+            "external_url": "External URL",
+            "image": "Image Path",
+            "year": "Year",
         }
         widgets = {
-            "title": TextInput(
-                attrs={
-                "placeholder": "Portfolio Website",
-                "maxlength": 255,
-                }
-            ),
-            "description": Textarea(
-                attrs={
-                "placeholder": "Ceritakan Proyekmu",
-                "rows": 3,
-                }
-            ),
-            "tech_stack": TextInput(
-                attrs={
-                    "placeholder": "Django, Python, HTML, CSS",
-                }
-            ),
-             "project_url": URLInput(
-                attrs={
-                "placeholder": "https://github.com/kakBurhan/burhanquestv4",
-                }
-            ),
-            "project_image_url": URLInput(
-                attrs={
-                "placeholder": "https://drive.google.com/thumbnail?id=...&sz=w1000",
-                }
-            ),
- }
+            "title": TextInput(attrs={
+                "placeholder": "e.g. SIGAP",
+            }),
+            "category": TextInput(attrs={
+                "placeholder": "e.g. AI / Data Science",
+            }),
+            "description": Textarea(attrs={
+                "placeholder": "Describe your project...",
+                "rows": 5,
+            }),
+            "tech_stack": TextInput(attrs={
+                "placeholder": "e.g. Python, Django, PostgreSQL",
+            }),
+            "achievement": TextInput(attrs={
+                "placeholder": "e.g. Top 10 Nasional",
+            }),
+            "github_url": URLInput(attrs={
+                "placeholder": "https://github.com/...",
+            }),
+            "external_url": URLInput(attrs={
+                "placeholder": "https://...",
+            }),
+            "image": TextInput(attrs={
+                "placeholder": "img/project-name.png",
+            }),
+            "year": NumberInput(attrs={
+                "placeholder": "2026",
+            }),
+        }
 
                 
 

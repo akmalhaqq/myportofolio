@@ -826,16 +826,9 @@ body:has(#projects:target) .nav-projects::before {
 
   opacity: 0.16;
 
-  filter:
-    grayscale(100%)
-    saturate(0.7);
+  filter: grayscale(100%) saturate(0.7);
 
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    black 40%,
-    black 100%
-  );
+  mask-image: linear-gradient(to right, transparent 0%, black 40%, black 100%);
 
   -webkit-mask-image: linear-gradient(
     to right,
@@ -859,12 +852,11 @@ body:has(#projects:target) .nav-projects::before {
 
   pointer-events: none;
 
-  background:
-    radial-gradient(
-      circle at 78% 50%,
-      rgba(126, 168, 122, 0.13),
-      transparent 35%
-    );
+  background: radial-gradient(
+    circle at 78% 50%,
+    rgba(126, 168, 122, 0.13),
+    transparent 35%
+  );
 }
 
 .project-item::after {
@@ -876,14 +868,13 @@ body:has(#projects:target) .nav-projects::before {
 
   pointer-events: none;
 
-  background:
-    linear-gradient(
-      90deg,
-      var(--paper) 0%,
-      rgba(18, 24, 31, 0.96) 32%,
-      rgba(18, 24, 31, 0.72) 58%,
-      rgba(18, 24, 31, 0.35) 100%
-    );
+  background: linear-gradient(
+    90deg,
+    var(--paper) 0%,
+    rgba(18, 24, 31, 0.96) 32%,
+    rgba(18, 24, 31, 0.72) 58%,
+    rgba(18, 24, 31, 0.35) 100%
+  );
 }
 .project-index,
 .project-content,
@@ -1066,9 +1057,7 @@ body:has(#projects:target) .nav-projects::before {
 
   transform: scale(1.03);
 
-  filter:
-    grayscale(60%)
-    saturate(1);
+  filter: grayscale(60%) saturate(1);
 }
 
 .reveal {
@@ -1087,6 +1076,60 @@ body:has(#projects:target) .nav-projects::before {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* PROJECT FORM */
+.project-form {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 700;
+}
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.7rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  font: inherit;
+  transition:
+    border-color 0.2s ease,
+    outline-color 0.2s ease;
+}
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: 2px solid var(--accent);
+  border-color: var(--accent);
+}
+.form-error {
+  color: #b42318;
+  font-size: 0.85rem;
+  margin-top: 0.35rem;
+}
+.button {
+  display: inline-block;
+  height: fit-content;
+  border: 0;
+  border-radius: var(--radius);
+  padding: 0.65rem 1rem;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+.button-secondary {
+  background: var(--ink);
 }
 
 /*Footer*/
