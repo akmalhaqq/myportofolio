@@ -1,3 +1,4 @@
+  {% extends 'base.html' %}
 <!doctype html>
 <html lang="en">
   <head>
@@ -20,47 +21,9 @@
     <link rel="stylesheet" href="/static/css/style.css" />
   </head>
   <body>
-    <header class="site-header">
-      <nav class="nav_container">
-        <a href="#profile" class="nav_logo">HAQQ.
-        </a>
+  
 
-        <!--Menu Toggle-->
-        <input type="checkbox" id="nav-toggle" class="nav_checkbox" />
-
-        <div class="nav_menu" id="nav-menu">
-          <ul class="nav_list">
-            <li>
-              <a href="#profile" class="nav_link nav-home">Home</a>
-            </li>
-            <li>
-              <a href="#about" class="nav_link nav-about">About</a>
-            </li>
-            <li>
-              <a href="#skills" class="nav_link nav-skills">Skills</a>
-            </li>
-            <li>
-                <a href="{% url 'main:show_experience' %}" class="nav_link nav-experience">Experience</a>
-            </li>
-            <li>
-              <a href="{% url 'main:show_projects' %}" class="nav_link nav-projects">Projects</a>
-            </li>
-
-            <li>
-              <a href="#contact" class="nav_contact">Contact me</a>
-            </li>
-          </ul>
-
-          <label for="nav-toggle" class="nav_close" aria-label="Close menu">
-            <i class="ri-close-large-line"></i>
-          </label>
-        </div>
-        <label for="nav-toggle" class="nav_toggle" aria-label="Open menu">
-          <i class="ri-menu-4-fill"></i>
-        </label>
-      </nav>
-    </header>
-
+  {% block content %}
     <main>
       <section class="hero" id="profile">
         <div class="container hero-grid">
@@ -119,7 +82,7 @@
         </div>
       </section>
     </main>
-
+  
     <!--ABOUT SECTION-->
     <section class="about_section" id="about">
       <div class="container">
@@ -308,37 +271,7 @@
         </div>
       </div>
     </section>
+  {% endblock content %}
 
-    <footer class="site-footer reveal" id="contact">
-      <div class="container">
-        <div class="footer-main">
-          <p class="footer-kicker">Get in touch</p>
-          <h2>Let's connect.</h2>
-          <p>
-            Whether it's about technology, data, or an interesting problem, feel
-            free to reach out.
-          </p>
-          <div class="footer-links">
-            <a href="mailto:haqqaniakmal@gmail.com">Email</a>
-            <a
-              href="https://github.com/akmalhaqq"
-              target="_blank"
-              rel="noopener noreferrer"
-              >GitHub</a>
-            <a
-              href="https://www.linkedin.com/in/akmalhaqqani/"
-              target="_blank"
-              rel="noopener noreferrer"
-              >LinkedIn</a
-            >
-          </div>
-        </div>
-
-        <div class="footer-bottom">
-          <p>&copy; 2026 {{name}}.</p>
-          <p>Computer Science · Universitas Indonesia</p>
-        </div>
-      </div>
-    </footer>
   </body>
 </html>

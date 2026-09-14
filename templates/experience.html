@@ -1,9 +1,15 @@
+    {% extends 'base.html' %}
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="static/img/favilogo.png" type="image/gif" sizes="16x16">
+    <link
+      rel="icon"
+      href="static/img/favilogo.png"
+      type="image/gif"
+      sizes="16x16"
+    />
 
     <link
       href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css"
@@ -20,121 +26,55 @@
     <link rel="stylesheet" href="/static/css/style.css" />
   </head>
   <body>
-    <header class="site-header">
-      <nav class="nav_container">
-        <a href="{% url 'main:show_main' %}" class="nav_logo">HAQQ.
-        </a>
 
-        <!--Menu Toggle-->
-        <input type="checkbox" id="nav-toggle" class="nav_checkbox" />
+    {% block content %}
+    <main>
+      <section class="experience-section" id="experience">
+        <div class="container">
+          <p class="section-kicker reveal">Where I've contributed</p>
 
-        <div class="nav_menu" id="nav-menu">
-          <ul class="nav_list">
-            <li>
-              <a href="{% url 'main:show_main' %}" class="nav_link nav-home">Home</a>
-            </li>
-            <li>
-              <a href="{% url 'main:show_main' %}#about" class="nav_link nav-about">About</a>
-            </li>
-            <li>
-              <a href="{% url 'main:show_main' %}#skills" class="nav_link nav-skills">Skills</a>
-            </li>
-            <li>
-                <a href="{% url 'main:show_experience' %}" class="nav_link nav-experience">Experience</a>
-            </li>
-            <li>
-              <a href="{% url 'main:show_projects' %}" class="nav_link nav-projects">Projects</a>
-            </li>
-
-            <li>
-              <a href="#contact" class="nav_contact">Contact me</a>
-            </li>
-          </ul>
-
-          <label for="nav-toggle" class="nav_close" aria-label="Close menu">
-            <i class="ri-close-large-line"></i>
-          </label>
-        </div>
-        <label for="nav-toggle" class="nav_toggle" aria-label="Open menu">
-          <i class="ri-menu-4-fill"></i>
-        </label>
-      </nav>
-    </header>
-
-<main>
-  <section class="experience-section" id="experience">
-    <div class="container">
-      <p class="section-kicker reveal">Where I've contributed</p>
-
-      <div class="experience-heading reveal">
-        <h2>Experience</h2>
-        <p>A collection of roles, responsibilities, and experiences that shaped how I work.</p>
-      </div>
-
-      <div class="experience-list">
-        {% for experience in experience_list %}
-        <article class="experience-item reveal">
-          <div class="experience-index">
-            {{ forloop.counter|stringformat:"02d" }}
+          <div class="experience-heading reveal">
+            <h2>Experience</h2>
+            <p>
+              A collection of roles, responsibilities, and experiences that
+              shaped how I work.
+            </p>
           </div>
 
-          <div class="experience-content">
-            <div class="experience-meta">
-              <span>{{ experience.period }}</span>
-            </div>
+          <div class="experience-list">
+            {% for experience in experience_list %}
+            <article class="experience-item reveal">
+              <div class="experience-index">
+                {{ forloop.counter|stringformat:"02d" }}
+              </div>
 
-            <h3>{{ experience.title }}</h3>
+              <div class="experience-content">
+                <div class="experience-meta">
+                  <span>{{ experience.period }}</span>
+                </div>
 
-            <p class="experience-company">{{ experience.company }}</p>
+                <h3>{{ experience.title }}</h3>
 
-            <p class="experience-description">{{ experience.description }}</p>
+                <p class="experience-company">{{ experience.company }}</p>
 
-            <div class="experience-tags">
-              {% for tag in experience.tag_list %}
-              <span>{{ tag }}</span>
-              {% endfor %}
-            </div>
-          </div>
-        </article>
-        {% empty %}
-        <p class="empty-state">Belum ada pengalaman yang ditambahkan.</p>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-</main>
+                <p class="experience-description">
+                  {{ experience.description }}
+                </p>
 
-
-    <footer class="site-footer reveal" id="contact">
-      <div class="container">
-        <div class="footer-main">
-          <p class="footer-kicker">Get in touch</p>
-          <h2>Let's connect.</h2>
-          <p>
-            Whether it's about technology, data, or an interesting problem, feel
-            free to reach out.
-          </p>
-          <div class="footer-links">
-            <a href="mailto:haqqaniakmal@gmail.com">Email</a>
-            <a
-              href="https://github.com/akmalhaqq"
-              target="_blank"
-              rel="noopener noreferrer"
-              >GitHub</a>
-            <a
-              href="https://www.linkedin.com/in/akmalhaqqani/"
-              target="_blank"
-              rel="noopener noreferrer"
-              >LinkedIn</a
-            >
+                <div class="experience-tags">
+                  {% for tag in experience.tag_list %}
+                  <span>{{ tag }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+            </article>
+            {% empty %}
+            <p class="empty-state">Belum ada pengalaman yang ditambahkan.</p>
+            {% endfor %}
           </div>
         </div>
-
-        <div class="footer-bottom">
-          <p>&copy; 2026 {{name}}.</p>
-          <p>Computer Science · Universitas Indonesia</p>
-        </div>
-      </div>
-    </footer>
+      </section>
+    </main>
+    {% endblock content %}
   </body>
 </html>
