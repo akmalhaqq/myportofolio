@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+
     {% block meta %}
     <title>Projects - {{name}}</title>
     {% endblock meta %}
@@ -24,7 +24,7 @@
           {% if project.image %}
           <img
             class="project-background"
-            src="{% static project.image %}"
+            src="{{ project.image }}"
             alt=""
             aria-hidden="true"
           />
