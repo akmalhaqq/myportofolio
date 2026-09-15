@@ -12,11 +12,30 @@
   <main>
     <section class="projects-section" id="projects">
       <div class="projects-header">
+        
         <p class="projects-eyebrow">PROJECTS</p>
+
         <h1 class="projects-heading">
           Selected works that explore AI, data, and computational problems.
         </h1>
+        
+                <a
+    href="{% url 'main:create_project' %}"
+    class="button project-add-button"
+  >
+    + Tambah Project
+  </a>
       </div>
+
+     <form method="GET" action="" class="project-search">
+  <input
+        type="text"
+        name="title"
+        value="{{ title_query }}"
+        placeholder="Search projects..."
+      />
+      <button type="submit" class="button">Search</button>
+  </form>
 
       <div class="projects-list">
         {% for project in project_list %}
@@ -69,6 +88,9 @@
               </a>
               {% endif %}
             </div>
+                      {% include "components/project_delete_modal.html" with project=project %}
+
+    
           </div>
 
           <div class="project-year">{{project.year}}</div>
