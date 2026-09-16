@@ -12,6 +12,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 # Create your views here.
 def check_secret(request):
     secret = os.getenv("PROJECT_SECRET")
+    if not secret:
+        return False
     return request.headers.get("X-SECRET-CODE") == secret or request.POST.get("secret_code") == secret
 
 def show_main(request):
