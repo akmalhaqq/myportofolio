@@ -4,11 +4,26 @@ from django.db import models
 import uuid
 from django.db import models
 class Experience(models.Model):
+
+    CATEGORY_CHOICES = [
+        ("Organizational", "Organizational"),
+        ("Leadership", "Leadership"),
+        ("Teaching", "Teaching"),
+        ("Competition", "Competition"),
+        ("Community", "Community"),
+        ("Other", "Other"),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     order = models.PositiveBigIntegerField(default=0)
     title = models.CharField(max_length=255)
     company = models.CharField(max_length=255)
-    period = models.CharField(max_length=100)
+    period = models.CharField(max_length=100)    
+    category = models.CharField(
+        max_length= 50,
+        choices = CATEGORY_CHOICES,
+        default="Other",
+    )
     description = models.TextField()
     tags = models.CharField(max_length=255, help_text ="Pisahkan dengan koma")
 

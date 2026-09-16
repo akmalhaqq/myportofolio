@@ -1,5 +1,6 @@
 from django.forms import ModelForm, TextInput, Textarea, URLInput, NumberInput
-from main.models import Project
+from main.models import Project, Experience
+
 
 class ProjectForm(ModelForm):
     class Meta:
@@ -57,6 +58,18 @@ class ProjectForm(ModelForm):
                 "placeholder": "2026",
             }),
         }
+class ExperienceForm(ModelForm):
+    class Meta:
+        model = Experience
+        fields = [
+            "order",
+            "category",            
+            "title",
+            "company",
+            "period",
+            "description",
+            "tags",
+        ]
 
                 
 
