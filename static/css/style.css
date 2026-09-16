@@ -1280,21 +1280,34 @@ body:has(#skills:target) .nav-skills::before {
   font-weight: 700;
 }
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
   width: 100%;
   box-sizing: border-box;
   padding: 0.7rem;
   border: 1px solid var(--accent);
   border-radius: var(--radius);
   font: inherit;
+  background-color: var(--paper);
+  color: var(--ink);
   transition:
     border-color 0.2s ease,
     outline-color 0.2s ease;
 }
 .form-group input:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.form-group select:focus {
   outline: 2px solid var(--accent);
   border-color: var(--accent);
+}
+
+.experience-custom-form {
+  background: linear-gradient(145deg, rgba(126, 168, 122, 0.05), transparent);
+  border: 1px solid rgba(126, 168, 122, 0.2);
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px -15px rgba(0,0,0,0.5);
+  backdrop-filter: blur(5px);
 }
 .form-error {
   color: #b42318;

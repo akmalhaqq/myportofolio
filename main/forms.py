@@ -62,7 +62,6 @@ class ExperienceForm(ModelForm):
     class Meta:
         model = Experience
         fields = [
-            "order",
             "category",            
             "title",
             "company",

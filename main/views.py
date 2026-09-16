@@ -3,7 +3,7 @@ import os
 from django.shortcuts import render
 
 from main.models import Experience, Project
-from main.forms import ProjectForm
+from main.forms import ProjectForm, ExperienceForm
 from django.contrib import messages
 from django.core import serializers
 from django.http import HttpResponse
@@ -29,7 +29,7 @@ def show_main(request):
     ),
     }
     return render(request, "index.html", context)
-
+# show experience
 def show_experience(request):
         context = {
         "name": "Muhammad Akmal Haqqani",
@@ -37,6 +37,49 @@ def show_experience(request):
         }
         return render(request, "experience.html", context)
 
+# create experience 
+
+def create_experience(request):
+    form = ExperienceForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        if check_secret(request):
+            last_experience = Experience.objects.order_by("-order").first()
+
+            if last_experience:
+                form.instance.order = last_experience.order + 1
+            else:
+                form.instance.order = 1
+
+            form.save()
+
+            messages.success(
+                request,
+                "Experience berhasil ditambahkan!"
+            )
+
+            return redirect("main:show_experience")
+
+        else:
+            messages.error(
+                request,
+                "Kode rahasia salah!"
+            )
+
+    context = {
+        "name": "Muhammad Akmal Haqqani",
+        "form": form,
+        "form_title": "Add Experience",
+        "submit_label": "Tambah Experience",
+    }
+
+    return render(
+        request,
+        "experience_form.html",
+        context
+    )
+
+#get project and show project
 def get_projects_json(request):
       title_query = request.GET.get("title", "").strip()
       projects = Project.objects.all()
@@ -66,7 +109,7 @@ def show_projects(request):
       }
 
       return render(request, "projects.html", context)
-
+# Delete and Create Project
 def create_project(request):
       form = ProjectForm(request.POST or None)
       if request.method == "POST" and form.is_valid():
