@@ -46,26 +46,27 @@
       <strong>{{ project.title }}</strong>?
     </p>
 
-    <div class="project-delete-modal__actions">
-      <button
-        type="button"
-        class="button button-secondary"
-        popovertarget="delete-project-{{ project.id }}"
-        popovertargetaction="hide"
-      >
-        Batal
-      </button>
+    <form method="post" action="{% url 'main:delete_project' project.id %}">
+      {% csrf_token %}
+      <div class="form-group" style="margin-bottom: 1.5rem; text-align: left;">
+        <label for="secret_code_{{ project.id }}" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Secret Code</label>
+        <input type="password" id="secret_code_{{ project.id }}" name="secret_code" placeholder="Enter secret code" required style="width: 100%; padding: 0.75rem; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box;">
+      </div>
 
-      <form
-        method="post"
-        action="{% url 'main:delete_project' project.id %}"
-      >
-        {% csrf_token %}
+      <div class="project-delete-modal__actions">
+        <button
+          type="button"
+          class="button button-secondary"
+          popovertarget="delete-project-{{ project.id }}"
+          popovertargetaction="hide"
+        >
+          Batal
+        </button>
 
         <button type="submit" class="button button-danger">
           Ya, Hapus
         </button>
-      </form>
-    </div>
+      </div>
+    </form>
   </div>
 </div>

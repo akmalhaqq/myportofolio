@@ -1,3 +1,5 @@
+import os
+
 from django.shortcuts import render
 
 from main.models import Experience, Project
@@ -8,6 +10,10 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 # Create your views here.
+def check_secret(request):
+    secret = os.getenv("PROJECT_SECRET")
+    return request.headers.get("X-SECRET-CODE") == secret or request.POST.get("secret_code") == secret
+
 def show_main(request):
     context = {
     "name": "Muhammad Akmal Haqqani",
@@ -62,9 +68,13 @@ def show_projects(request):
 def create_project(request):
       form = ProjectForm(request.POST or None)
       if request.method == "POST" and form.is_valid():
-            form.save()
-            messages.success(request, "Proyek baru berhasil ditambahkan!")
-            return redirect("main:show_projects")
+            if check_secret(request):
+                  form.save()
+                  messages.success(request, "Proyek baru berhasil ditambahkan!")
+                  return redirect("main:show_projects")
+            else:
+                  messages.error(request, "Kode rahasia salah!")
+
       context = {
             "name": "Burhan",
             "form": form,
@@ -75,8 +85,12 @@ def delete_project(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
 
     if request.method == "POST":
-        project.delete()
-        messages.success(request, "Project berhasil dihapus!")
+        if check_secret(request):
+            project.delete()
+            messages.success(request, "Project berhasil dihapus!")
+        else:
+            messages.error(request, "Kode rahasia salah!")
         return redirect("main:show_projects")
 
     return redirect("main:show_projects")
+

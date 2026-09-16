@@ -11,6 +11,17 @@
   {% block content %}
   <main>
     <section class="projects-section" id="projects">
+      {% if messages %}
+        <div class="messages-container" style="max-width: 1200px; margin: 0 auto 2rem auto; padding: 0 20px;">
+          {% for message in messages %}
+            {% if message.tags == 'error' %}
+              <div class="auto-hide-message" style="background-color: #ffebee; color: #c62828; padding: 1rem; border-radius: 8px; font-size: 0.9rem; text-align: center; transition: opacity 0.5s ease;">
+                {{ message }}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
       <div class="projects-header">
         
         <p class="projects-eyebrow">PROJECTS</p>
@@ -103,4 +114,12 @@
       </div>
     </section>
   </main>
+<script>
+  setTimeout(function() {
+    var messages = document.querySelectorAll('.auto-hide-message');
+    messages.forEach(function(msg) {
+      msg.style.opacity = '0';
+    });
+  }, 2000);
+</script>
  {% endblock content %}
