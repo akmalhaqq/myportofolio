@@ -35,34 +35,23 @@
 
         <div class="nav_menu" id="nav-menu">
           <ul class="nav_list">
+            {% url 'main:show_main' as main_url %}
+            {% url 'main:show_experience' as exp_url %}
+            {% url 'main:show_projects' as proj_url %}
             <li>
-              <a href="{% url 'main:show_main' %}" class="nav_link nav-home"
-                >Home</a
-              >
+              <a href="{{ main_url }}" class="nav_link nav-home {% if request.path == main_url %}active{% endif %}">Home</a>
             </li>
             <li>
-              <a
-                href="{% url 'main:show_main' %}#about"
-                class="nav_link nav-about"
-                >About</a
-              >
+              <a href="{{ main_url }}#about" class="nav_link nav-about">About</a>
             </li>
             <li>
-              <a
-                href="{% url 'main:show_main' %}#skills"
-                class="nav_link nav-skills"
-                >Skills</a
-              >
+              <a href="{{ main_url }}#skills" class="nav_link nav-skills">Skills</a>
             </li>
             <li>
-              <a
-                href="{% url 'main:show_experience' %}"
-                class="nav_link nav-experience"
-                >Experience</a
-              >
+              <a href="{{ exp_url }}" class="nav_link nav-experience {% if request.path == exp_url %}active{% endif %}">Experience</a>
             </li>
             <li>
-              <a href="{% url 'main:show_projects' %}" class="nav_link nav-projects">Projects</a>
+              <a href="{{ proj_url }}" class="nav_link nav-projects {% if request.path == proj_url %}active{% endif %}">Projects</a>
             </li>
 
             <li>

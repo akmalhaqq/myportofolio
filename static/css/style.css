@@ -1,3 +1,7 @@
+@view-transition {
+  navigation: auto;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -173,23 +177,33 @@ h1,
   color: var(--paper);
   transform: translateY(-2px);
 }
-/*indikator ijo buat navbar animasi*/
-.nav-home::before {
-  opacity: 1;
-  transform: translateY(-50%) scale(1);
+@keyframes navDotIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
 }
 
-body:has(#about:target) .nav-home::before,
-body:has(#skills:target) .nav-home::before,
-body:has(#experience:target) .nav_home[href="#profile"]::before,
-body:has(#projects:target) .nav-home::before {
+/*indikator ijo buat navbar animasi*/
+.nav_link.active::before {
+  animation: navDotIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* kalo section di main page targeted, hide the dot from home */
+body:has(#about:target) .nav-home.active::before,
+body:has(#skills:target) .nav-home.active::before {
+  animation: none;
+  opacity: 0;
   transform: translateY(-50%) scale(0.4);
 }
 
+/*  nunjukin dot on the targeted section link */
 body:has(#about:target) .nav-about::before,
-body:has(#skills:target) .nav-skills::before,
-body:has(#experience:target) .nav-experience::before,
-body:has(#projects:target) .nav-projects::before {
+body:has(#skills:target) .nav-skills::before {
   opacity: 1;
   transform: translateY(-50%) scale(1);
 }
