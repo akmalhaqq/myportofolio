@@ -1690,3 +1690,42 @@ body:has(#projects:target) .nav-projects::before {
     gap: 0.25rem;
   }
 }
+/* Error Messages Styling */
+.form-error-msg {
+  color: red;
+  font-size: 0.8rem;
+  display: block;
+  margin-bottom: 5px;
+  transition: opacity 0.5s ease;
+}
+
+.global-error-msg {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-align: center;
+  transition: opacity 0.5s ease;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .global-error-msg {
+    font-size: 0.85rem;
+    padding: 0.8rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .form-error-msg {
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+  }
+  
+  .global-error-msg {
+    font-size: 0.8rem;
+    padding: 0.6rem;
+    border-radius: 6px;
+  }
+}
