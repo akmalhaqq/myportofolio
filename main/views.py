@@ -71,6 +71,49 @@ def create_experience(request):
         "form": form,
         "form_title": "Add Experience",
         "submit_label": "Tambah Experience",
+        "form_action" : request.path,
+    }
+
+    return render(
+        request,
+        "experience_form.html",
+        context
+    )
+# Update experience
+def update_experience(request, experience_id):
+    experience = get_object_or_404(
+        Experience,
+        pk=experience_id
+    )
+
+    form = ExperienceForm(
+        request.POST or None,
+        instance=experience
+    )
+
+    if request.method == "POST" and form.is_valid():
+        if check_secret(request):
+            form.save()
+
+            messages.success(
+                request,
+                "Experience berhasil diperbarui!"
+            )
+
+            return redirect("main:show_experience")
+
+        else:
+            messages.error(
+                request,
+                "Kode rahasia salah!"
+            )
+
+    context = {
+        "name": "Muhammad Akmal Haqqani",
+        "form": form,
+        "form_title": "Edit Experience",
+        "submit_label": "Simpan Perubahan",
+        "form_action": request.path,
     }
 
     return render(

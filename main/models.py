@@ -6,6 +6,7 @@ from django.db import models
 class Experience(models.Model):
 
     CATEGORY_CHOICES = [
+        ("Internship","Internship"),
         ("Organizational", "Organizational"),
         ("Leadership", "Leadership"),
         ("Teaching", "Teaching"),
