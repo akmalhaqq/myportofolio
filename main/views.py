@@ -122,6 +122,28 @@ def update_experience(request, experience_id):
         context
     )
 
+# delete experience
+def delete_experience(request, experience_id):
+    experience = get_object_or_404(
+        Experience,
+        pk=experience_id
+    )
+
+    if request.method == "POST":
+        if check_secret(request):
+            experience.delete()
+            messages.success(
+                request,
+                "Experience berhasil dihapus!"
+            )
+        else:
+            messages.error(
+                request,
+                "Kode rahasia salah!"
+            )
+
+    return redirect("main:show_experience")
+
 #get project and show project
 def get_projects_json(request):
       title_query = request.GET.get("title", "").strip()

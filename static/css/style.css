@@ -1226,25 +1226,7 @@ body:has(#skills:target) .nav-skills::before {
   margin: 0;
 }
 
-.button-danger {
-  background: #9b4d4d;
-  color: var(--ink);
-}
 
-.button-danger:hover {
-  background: #b45c5c;
-}
-
-.button-secondary {
-  background: #526b50;
-  color: var(--ink);
-  border: 1px solid #526b50;
-}
-
-.button-secondary:hover {
-  background: #435842;
-  border-color: #435842;
-}
 
 .reveal {
   animation: sectionReveal linear both;
@@ -1326,9 +1308,37 @@ body:has(#skills:target) .nav-skills::before {
   font: inherit;
   font-weight: 700;
   text-decoration: none;
+  transition: all 0.3s ease;
+}
+.button:hover {
+  background: var(--accent-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(126, 168, 122, 0.4);
 }
 .button-secondary {
   background: #526b50 ;
+}
+
+.button-danger {
+  background: #9b4d4d;
+  color: var(--paper);
+}
+
+.button-danger:hover {
+  background: #d32f2f;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
+}
+
+.button-secondary {
+  background: #526b50;
+  color: var(--ink);
+  border: 1px solid #526b50;
+}
+
+.button-secondary:hover {
+  background: #435842;
+  border-color: #435842;
 }
 
 /*Footer*/
@@ -1462,6 +1472,30 @@ body:has(#skills:target) .nav-skills::before {
 
   .nav_checkbox:checked ~ .nav_toggle {
     display: none;
+  }
+
+  .nav_backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 90;
+    cursor: pointer;
+  }
+
+  .nav_checkbox:checked ~ .nav_backdrop {
+    display: block;
+  }
+
+  .nav_menu {
+    z-index: 100;
+  }
+
+  body:has(.nav_checkbox:checked) {
+    overflow: hidden;
   }
 
   /* About */

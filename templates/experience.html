@@ -10,11 +10,19 @@
           <p class="section-kicker reveal">Where I've contributed</p>
 
           <div class="experience-heading reveal">
-            <h2>Experience</h2>
-            <p>
-              A collection of roles, responsibilities, and experiences that
-              shaped how I work.
-            </p>
+            <div>
+              <h2>Experience</h2>
+              <p>
+                A collection of roles, responsibilities, and experiences that
+                shaped how I work.
+              </p>
+            </div>
+            <a
+              href="{% url 'main:create_experience' %}"
+              class="button"
+            >
+              + Tambah Experience
+            </a>
           </div>
 
           <div class="experience-list">
@@ -41,6 +49,13 @@
                   {% for tag in experience.tag_list %}
                   <span>{{ tag }}</span>
                   {% endfor %}
+                </div>
+
+                <div class="experience-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                  <a href="{% url 'main:update_experience' experience.id %}" class="button">
+                    Edit
+                  </a>
+                  {% include "components/experience_delete_modal.html" with experience=experience %}
                 </div>
               </div>
             </article>
