@@ -1,3 +1,4 @@
+from unicodedata import category
 import os
 
 from django.shortcuts import render
@@ -30,9 +31,16 @@ def show_main(request):
     }
     return render(request, "index.html", context)
 
-# Json
+# JSON 
 def get_experience_json(request):
+      category_query = request.GET.get("category", "").strip()
+
       experiences = Experience.objects.all()
+      if category_query:
+            experiences = experiences.filter(
+                  category__iexact = category_query
+            )
+
       experiences_json = serializers.serialize("json", experiences)
       return HttpResponse(experiences_json, content_type="application/json")
 
@@ -45,9 +53,13 @@ def show_experience(request):
             experience.object for experience in experiences
         ]
 
+        category_query = request.GET.get("category", "").strip()
+      
+
         context = {
         "name": "Muhammad Akmal Haqqani",
         "experience_list": experiences,
+        "category_query" : category_query,
         }
         return render(request, "experience.html", context)
 
