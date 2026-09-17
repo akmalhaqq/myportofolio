@@ -7,7 +7,7 @@ Class : PBP D
 # Personal Portfolio Akmal
 
 Website portofolio pribadi saya yang dibuat pakai HTML5 dan CSS3 untuk Tugas Individu 1 mata kuliah Pemrograman Berbasis Platform, Fakultas Ilmu Komputerm Universitas Indonesia.
-Isinya informasi pribadi, kemampuan teknis, pengalaman, proyek (menyusul), dan kontak, semua dalam satu halaman yang responsif.
+Isinya informasi pribadi, kemampuan teknis, pengalaman, proyek, dan kontak, semua dalam satu halaman yang responsif.
 
 ## Deskripsi
 
@@ -215,6 +215,32 @@ Hal yang sama berlaku waktu saya menambahkan field `image` ke model `Project`. P
  
 Pemisahan dua proses ini membuat perubahan schema database tercatat sebagai migration yang terstruktur dan bisa diterapkan secara konsisten, jadi perubahan model di aplikasi saya tetap terkontrol.
 
+
+# Pertanyaan Reflektif
+## TUGAS 3
+
+## 1. Kenapa Pakai 'ModelForm', bukan Form HTML Manual
+
+`ModelForm` saya pakai karena form-nya bisa langsung dibuat berdasarkan model Django yang sudah saya definisikan, jadi saya tidak perlu menulis tiap field secara manual pakai HTML. `ModelForm` juga otomatis menangani validasi data sesuai tipe field di model, dan langsung bisa dipakai untuk menyimpan data ke database lewat method `save()`. Ini bikin kode saya lebih ringkas dan mengurangi risiko field di form nggak sinkron dengan field di model, karena keduanya sumbernya sama.
+
+Soal `{% csrf_token %}`, ini wajib saya tambahkan di form saya karena fungsinya melindungi dari serangan Cross-Site Request Forgery (CSRF). Django mengecek token ini setiap ada request POST masuk, untuk memastikan request itu benar-benar berasal dari form di website saya sendiri, bukan dari website lain yang mencoba mengirim request atas nama saya menggunakan session yang sedang aktif di browser saya.
+
+## 2. Kenapa JSON Lebih Disukai Dibanding XML
+
+JSON lebih sering dipakai dibanding XML karena formatnya jauh lebih ringkas. JSON cukup pakai pasangan key-value dan array, tanpa tag pembuka-penutup seperti XML, jadi ukuran data yang dikirim lebih kecil dan lebih cepat diproses.
+
+Struktur JSON juga mirip banget sama object literal di JavaScript, jadi frontend (terutama yang berbasis JavaScript) bisa langsung parsing JSON ini jadi object tanpa parsing tambahan yang ribet seperti di XML. Kombinasi ukuran yang lebih kecil dan kemudahan parsing ini yang bikin JSON jadi pilihan default untuk pertukaran data lewat API di web modern, termasuk di endpoint JSON yang saya buat di portofolio saya.
+
+## 3. Alur View yang Mengembalikan Data dalam Bentuk JSON(saya menggunakan case projects)
+
+Ketika saya mengakses endpoint JSON portofolio saya, yaitu `/api/projects/`, request ini diproses lewat `urls.py` yang mengarahkannya ke view `get_projects_json` di `main/views.py`. View ini berbeda dengan `show_projects` yang saya gunakan untuk menampilkan halaman Projects dalam bentuk HTML. Di dalam `get_projects_json`, saya mengambil data `Project` dari database lewat `Project.objects.all()`.
+
+Object `Project` hasil query ini masih berupa Python object Django, bukan format yang bisa langsung saya kirim lewat HTTP sebagai JSON. Di sinilah proses serialization saya perlukan. Saya menggunakan `django.core.serializers.serialize("json", projects)` untuk mengubah QuerySet tersebut menjadi string JSON. Serialization ini menerjemahkan data dari model Django beserta field-nya menjadi representasi data yang mengikuti format JSON.
+
+Setelah datanya diserialize, saya mengembalikannya lewat `HttpResponse` dengan `content_type="application/json"`, supaya browser atau client yang mengakses endpoint tersebut tahu bahwa response yang dikirim berupa JSON, bukan HTML biasa.
+
+Serialization ini diperlukan karena object hasil query Django belum berbentuk data JSON yang bisa langsung dikirim sebagai response. Object Django perlu diterjemahkan terlebih dahulu menjadi representasi data yang terdiri dari struktur JSON seperti object, array, string, dan number. Setelah proses tersebut selesai, hasilnya dapat dikirim melalui HTTP sebagai JSON dan digunakan oleh client yang membutuhkannya.
+
 # AI Disclosure
 
 ## TUGAS 1
@@ -328,3 +354,63 @@ Link Chat GPT: https://chatgpt.com/share/6aa6ae4d-2a44-83ec-881f-c6a06e21935a
 ## Kesimpulan
  
 Tugas 1 kita fokus pada HTML5 dan CSS3, dengan membangun struktur dan membangun layout pakai Grid dan Flexbox, sampai menerapkan responsive design dan animasi lewat CSS. Tugas 2 melanjutkannya dengan mengubah bagian Projects dari data statis di HTML jadi data dinamis lewat model, view, dan template Django, lengkap dengan unit test dan Django Admin.
+
+
+# AI Disclosure
+## Tugas 3
+## Penggunaan AI
+
+Untuk Tugas 3, saya pakai ChatGPT terutama untuk memahami alur kerja Django secara menyeluruh (yang tadinya masih saya "kureng paham" dari awal) dan brainstorming fitur tambahan supaya bisa mengejar nilai 4.0.
+
+Beberapa hal yang dibantu ChatGPT:
+
+- Menjelaskan requirement lengkap Tugas 3 berdasarkan dua PDF tutorial yang saya berikan.
+- Menjelaskan ulang logika kerja Tutorial 3 dari awal, dari request masuk sampai objeknya muncul di halaman.
+- Menjelaskan alur Django secara menyeluruh, dari cara kode sampai tampil di web, alur request, sampai urls path, karena saya masih bingung integrasinya untuk lab yang harus dibangun ulang dari Tutorial 1 sampai 3.
+- Membantu saya menentukan Experience sebagai bagian yang saya pakai untuk requirement Tugas 3.
+- Brainstorming fitur tambahan yang bisa mendorong nilai ke 4.0, yang saya lanjutkan dengan implementasi create, update, delete untuk Experience.
+- Menjelaskan cara kerja pengiriman data JSON dan cara implementasinya di code.
+- Menjelaskan konsep search, sorting, dan template inheritance.
+- Membantu saya evaluasi mana fitur tambahan yang worth diimplementasikan dan mana yang tidak.
+
+## Pendekatan Penggunaan AI
+
+Saya mulai dengan kasih ChatGPT dua PDF tutorial sebagai konteks, lalu minta dia jelaskan detail requirement Tugas 3 supaya saya paham target nilai 4.0-nya dari awal, bukan baru cari tahu di tengah jalan.
+
+Karena saya masih belum paham alur Django secara keseluruhan, dari request sampai tampil di web, urls path, sampai integrasi antar tutorial, saya minta dijelaskan dari nol dulu sebelum masuk ke implementasi. Setelah itu, saya juga sempat minta ChatGPT menyimpan requirement tugas dalam format JSON sebagai konteks percakapan yang lebih ringkas, dan minta dia sebutkan file mana saja yang perlu saya kasih supaya dia tahu kondisi kode saya saat itu, karena state project saya sedikit beda dari Tutorial 3 murni.
+
+Untuk tiap fitur, CRUD, JSON delivery, search, sorting, template inheritance, saya kerjakan satu-satu, saya implementasikan sendiri, lapor progress ke ChatGPT, baru tanya konsep atau langkah berikutnya. Misalnya soal sorting, saya sempat tanya balik apakah itu butuh input data baru atau tidak, supaya saya tidak salah asumsi sebelum implementasi.
+
+Untuk fitur tambahan yang diusulkan ChatGPT, termasuk drag & drop, saya tidak langsung terima. Saya pertimbangkan dulu apakah fitur itu cocok dan sepadan dengan effort-nya, sampai akhirnya saya putuskan sendiri fitur mana yang saya pakai.
+
+## Keterbatasan AI yang Ditemukan
+
+Waktu ChatGPT usul fitur drag & drop untuk reorder data, saya mempertanyakan balik dampaknya ke performa, karena tiap drag pasti akan update database terus-menerus. ChatGPT sendiri tidak otomatis mempertimbangkan trade-off ini di awal, saya yang harus tanya dan menilai sendiri apakah fitur itu sepadan dengan risikonya.
+
+Sama seperti Tugas 1 dan 2, ChatGPT juga tidak bisa langsung menjamin implementasi saya benar, dia cuma bisa menjelaskan konsep dan kasih arahan. Saya tetap yang harus coding, commit, dan cek sendiri apakah fitur-fitur itu benar-benar jalan sesuai checklist.
+
+## Perbaikan Manual
+
+Setelah diskusi dengan ChatGPT, saya dipandu gpt untuk code melakukan:
+
+- Implementasi create, update, delete untuk Experience berdasarkan pemahaman alur Django yang saya dapat.
+- Membuat endpoint dan logic untuk JSON delivery (`get_json_experience`), termasuk serialize dan loop datanya.
+- Implementasi fitur filter kategori lewat button pemisah untuk Experience.
+- Implementasi dropdown sorting untuk data Experience.
+- Refactor seluruh file HTML supaya extend dari root template, sesuai konsep template inheritance yang saya pelajari(ini dari tutorial 3).
+- Memutuskan sendiri untuk tidak memakai fitur drag & drop yang diusulkan ChatGPT, setelah saya pertimbangkan dampaknya ke beban database.
+
+## Evaluasi Penggunaan AI
+
+Untuk Tugas 3, ChatGPT paling membantu di bagian yang paling saya bingungkan dari awal, yaitu memahami alur Django.
+
+Yang saya pelajari lagi, sama seperti tugas sebelumnya, AI bisa kasih banyak ide fitur tambahan, tapi saya yang harus filter mana yang benar-benar relevan dan mana yang cuma menambah kompleksitas tanpa manfaat sebanding, seperti kasus drag & drop itu.
+
+## Log Prompting
+
+Log percakapan lengkap dengan ChatGPT untuk Tugas 3 (pemahaman requirement, alur Django, implementasi CRUD, JSON delivery, search, sorting, sampai evaluasi fitur tambahan) saya lampirkan di link ini.
+Link Chat GPT: https://chatgpt.com/share/6aac2250-7ac0-83ec-a4d2-f4f56bb106df
+
+## Kesimpulan
+ 
+Tugas 1 kita fokus pada HTML5 dan CSS3, dengan membangun struktur dan membangun layout pakai Grid dan Flexbox, sampai menerapkan responsive design dan animasi lewat CSS. Tugas 2 melanjutkannya dengan mengubah bagian Projects dari data statis di HTML jadi data dinamis lewat model, view, dan template Django, lengkap dengan unit test dan Django Admin. Tugas 3 saya lanjutkan lagi dengan menambahkan CRUD penuh (create, update, delete) untuk Experience, endpoint JSON, fitur filter kategori dan sorting, serta refactor template supaya seluruh halaman extend dari satu root template lewat template inheritance.
