@@ -13,6 +13,7 @@ html {
   scroll-padding-top: var(--header-height);
 }
 :root {
+  --bg: #0f1419;
   --ink: #f2f0e8;
   --paper: #12181f;
   --accent: #7ea87a;
@@ -1622,9 +1623,9 @@ body:has(#skills:target) .nav-skills::before {
   }
 
   /*EXPERIENCE CATEGORY FILTER*/
-    .experience-filter {
-    margin-top: 2.5rem;
-    margin-bottom: 3rem;
+  .experience-filter {
+    margin-top: 3.5rem;
+    margin-bottom: 3.5rem;
   }
 
   .experience-filter__list {
@@ -1632,7 +1633,11 @@ body:has(#skills:target) .nav-skills::before {
     overflow-x: auto;
     gap: 0.5rem;
 
+    padding-top: 0.5rem;
+    margin-top: -0.5rem;
     padding-bottom: 0.5rem;
+    padding-left: 0.1rem;
+    padding-right: 0.1rem;
 
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
