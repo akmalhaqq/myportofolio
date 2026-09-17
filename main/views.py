@@ -34,12 +34,19 @@ def show_main(request):
 # JSON 
 def get_experience_json(request):
       category_query = request.GET.get("category", "").strip()
+      sort_query = request.GET.get("sort", "").strip()
 
       experiences = Experience.objects.all()
       if category_query:
             experiences = experiences.filter(
                   category__iexact = category_query
             )
+
+      if sort_query == "a-z":
+            experiences = experiences.order_by("title")
+      elif sort_query == "z-a":
+            experiences = experiences.order_by("-title")
+      # default is by order
 
       experiences_json = serializers.serialize("json", experiences)
       return HttpResponse(experiences_json, content_type="application/json")
@@ -54,12 +61,14 @@ def show_experience(request):
         ]
 
         category_query = request.GET.get("category", "").strip()
+        sort_query = request.GET.get("sort", "").strip()
       
 
         context = {
         "name": "Muhammad Akmal Haqqani",
         "experience_list": experiences,
         "category_query" : category_query,
+        "sort_query" : sort_query,
         }
         return render(request, "experience.html", context)
 

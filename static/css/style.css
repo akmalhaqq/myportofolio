@@ -841,6 +841,78 @@ body:has(#skills:target) .nav-skills::before {
   font-weight: 700;
 }
 
+/* SORT DROPDOWN */
+.sort-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.sort-dropdown__summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: #929ba5;
+  border: 1px solid #2a3540;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none; /* Hide default arrow */
+  transition: all 0.2s ease;
+}
+
+.sort-dropdown__summary::-webkit-details-marker {
+  display: none; /* Hide default arrow in webkit */
+}
+
+.sort-dropdown__summary:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.sort-dropdown[open] .sort-dropdown__summary {
+  color: var(--ink);
+  border-color: var(--accent);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.sort-dropdown__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: var(--paper);
+  border: 1px solid #2a3540;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.sort-dropdown__menu a {
+  padding: 0.75rem 1rem;
+  color: #929ba5;
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.sort-dropdown__menu a:hover {
+  background: rgba(126, 168, 122, 0.1);
+  color: var(--ink);
+}
+
+.sort-dropdown__menu a.active {
+  color: var(--accent);
+  font-weight: 600;
+  background: rgba(126, 168, 122, 0.05);
+}
+
 /*PROJECTS*/
 
 .projects-section {

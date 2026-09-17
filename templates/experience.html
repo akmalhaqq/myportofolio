@@ -36,60 +36,74 @@
             </a>
           </div>
         <div class="experience-filter">
-  <span class="experience-filter__label">Filter by category</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+            <span class="experience-filter__label" style="margin-bottom: 0;">Filter by category</span>
+            
+            <details class="sort-dropdown">
+              <summary class="sort-dropdown__summary">
+                Sort: {% if sort_query == 'a-z' %}A - Z{% elif sort_query == 'z-a' %}Z - A{% else %}Terbaru{% endif %}
+                <i class="ri-arrow-down-s-line"></i>
+              </summary>
+              <div class="sort-dropdown__menu">
+                <a href="?category={{ category_query }}&sort=" class="{% if not sort_query %}active{% endif %}">Terbaru</a>
+                <a href="?category={{ category_query }}&sort=a-z" class="{% if sort_query == 'a-z' %}active{% endif %}">A - Z (Title)</a>
+                <a href="?category={{ category_query }}&sort=z-a" class="{% if sort_query == 'z-a' %}active{% endif %}">Z - A (Title)</a>
+              </div>
+            </details>
+          </div>
 
   <div class="experience-filter__list">
     <a
-      href="{% url 'main:show_experience' %}"
+      href="?category=&sort={{ sort_query }}"
       class="experience-filter__item {% if not category_query %}active{% endif %}"
     >
       All
     </a>
 
     <a
-      href="?category=Internship"
+      href="?category=Internship&sort={{ sort_query }}"
       class="experience-filter__item {% if category_query == 'Internship' %}active{% endif %}"
     >
       Internship
     </a>
 
     <a
-      href="?category=Organizational"
+      href="?category=Organizational&sort={{ sort_query }}"
       class="experience-filter__item {% if category_query == 'Organizational' %}active{% endif %}"
     >
       Organizational
     </a>
 
     <a
-      href="?category=Leadership"
+      href="?category=Leadership&sort={{ sort_query }}"
       class="experience-filter__item {% if category_query == 'Leadership' %}active{% endif %}"
     >
       Leadership
     </a>
 
     <a
-      href="?category=Teaching"
+      href="?category=Teaching&sort={{ sort_query }}"
       class="experience-filter__item {% if category_query == 'Teaching' %}active{% endif %}"
     >
       Teaching
     </a>
 
     <a
-      href="?category=Competition"
+      href="?category=Competition&sort={{ sort_query }}"
       class="experience-filter__item {% if category_query == 'Competition' %}active{% endif %}"
     >
       Competition
     </a>
 
     <a
-      href="?category=Community"
+      href="?category=Community&sort={{ sort_query }}"
       class="experience-filter__item {% if category_query == 'Community' %}active{% endif %}"
     >
       Community
     </a>
 
     <a
-      href="?category=Other"
+      href="?category=Other&sort={{ sort_query }}"
       class="experience-filter__item {% if category_query == 'Other' %}active{% endif %}"
     >
       Other
