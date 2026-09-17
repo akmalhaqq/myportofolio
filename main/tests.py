@@ -58,6 +58,74 @@ class MainTest(TestCase):
         response = self.client.get(reverse("main:show_experience"))
         self.assertContains(response, "Belum ada pengalaman yang ditambahkan.")
 
+    def test_create_experience_success(self):
+        response = self.client.post(reverse("main:create_experience"), {
+            "title": "New Experience",
+            "company": "New Company",
+            "period": "2024",
+            "category": "Internship",
+            "description": "New description",
+            "tags": "Python, Django",
+            "secret_code": "AkmalProjects2026"
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Experience.objects.filter(title="New Experience").exists())
+
+    def test_create_experience_wrong_secret(self):
+        response = self.client.post(reverse("main:create_experience"), {
+            "title": "New Experience 2",
+            "company": "New Company",
+            "period": "2024",
+            "category": "Internship",
+            "description": "New description",
+            "tags": "Python, Django",
+            "secret_code": "wrongsecret"
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Experience.objects.filter(title="New Experience 2").exists())
+
+    def test_update_experience_success(self):
+        response = self.client.post(reverse("main:update_experience", args=[self.experience.id]), {
+            "title": "Updated Title",
+            "company": self.experience.company,
+            "period": self.experience.period,
+            "category": self.experience.category,
+            "description": self.experience.description,
+            "tags": self.experience.tags,
+            "secret_code": "AkmalProjects2026"
+        })
+        self.assertEqual(response.status_code, 302)
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Updated Title")
+
+    def test_update_experience_wrong_secret(self):
+        response = self.client.post(reverse("main:update_experience", args=[self.experience.id]), {
+            "title": "Updated Title 2",
+            "company": self.experience.company,
+            "period": self.experience.period,
+            "category": self.experience.category,
+            "description": self.experience.description,
+            "tags": self.experience.tags,
+            "secret_code": "wrongsecret"
+        })
+        self.assertEqual(response.status_code, 200)
+        self.experience.refresh_from_db()
+        self.assertNotEqual(self.experience.title, "Updated Title 2")
+
+    def test_delete_experience_success(self):
+        response = self.client.post(reverse("main:delete_experience", args=[self.experience.id]), {
+            "secret_code": "AkmalProjects2026"
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Experience.objects.filter(id=self.experience.id).exists())
+
+    def test_delete_experience_wrong_secret(self):
+        response = self.client.post(reverse("main:delete_experience", args=[self.experience.id]), {
+            "secret_code": "wrongsecret"
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Experience.objects.filter(id=self.experience.id).exists())
+
 # Projects Test
 
     def test_projects_url_is_accessible(self):
