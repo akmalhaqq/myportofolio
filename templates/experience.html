@@ -35,6 +35,67 @@
               + Tambah Experience
             </a>
           </div>
+        <div class="experience-filter">
+  <span class="experience-filter__label">Filter by category</span>
+
+  <div class="experience-filter__list">
+    <a
+      href="{% url 'main:show_experience' %}"
+      class="experience-filter__item {% if not category_query %}active{% endif %}"
+    >
+      All
+    </a>
+
+    <a
+      href="?category=Internship"
+      class="experience-filter__item {% if category_query == 'Internship' %}active{% endif %}"
+    >
+      Internship
+    </a>
+
+    <a
+      href="?category=Organizational"
+      class="experience-filter__item {% if category_query == 'Organizational' %}active{% endif %}"
+    >
+      Organizational
+    </a>
+
+    <a
+      href="?category=Leadership"
+      class="experience-filter__item {% if category_query == 'Leadership' %}active{% endif %}"
+    >
+      Leadership
+    </a>
+
+    <a
+      href="?category=Teaching"
+      class="experience-filter__item {% if category_query == 'Teaching' %}active{% endif %}"
+    >
+      Teaching
+    </a>
+
+    <a
+      href="?category=Competition"
+      class="experience-filter__item {% if category_query == 'Competition' %}active{% endif %}"
+    >
+      Competition
+    </a>
+
+    <a
+      href="?category=Community"
+      class="experience-filter__item {% if category_query == 'Community' %}active{% endif %}"
+    >
+      Community
+    </a>
+
+    <a
+      href="?category=Other"
+      class="experience-filter__item {% if category_query == 'Other' %}active{% endif %}"
+    >
+      Other
+    </a>
+  </div>
+</div>
 
           <div class="experience-list">
             {% for experience in experience_list %}
