@@ -7,6 +7,17 @@
     <main>
       <section class="experience-section" id="experience">
         <div class="container">
+          {% if messages %}
+            <div class="messages-container" style="max-width: 1200px; margin: 0 auto 2rem auto; padding: 0 20px;">
+              {% for message in messages %}
+                {% if message.tags == 'error' %}
+                  <div class="global-error-msg">
+                    {{ message }}
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
           <p class="section-kicker reveal">Where I've contributed</p>
 
           <div class="experience-heading reveal">
