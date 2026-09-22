@@ -36,6 +36,9 @@
                 <dd>{{study_program}}</dd>
               </div>
             </dl>
+            {% if user.is_authenticated and last_login %}
+            <p class="last-login">Terakhir login: {{ last_login }}</p>
+            {% endif %}
             <div class="social-links">
               <a
                 href="https://github.com/akmalhaqq"

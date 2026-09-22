@@ -98,6 +98,31 @@ class MainTest(TestCase):
         self.assertNotIn("_auth_user_id", self.client.session)
         self.assertTrue(response.context["form"].non_field_errors())
 
+    def test_last_login_cookie_lifecycle(self):
+        User.objects.create_user(
+            username="visitor",
+            password="SafePassword123!",
+        )
+
+        login_response = self.client.post(reverse("main:login"), {
+            "username": "visitor",
+            "password": "SafePassword123!",
+        })
+
+        self.assertIn("last_login", login_response.cookies)
+        self.assertTrue(login_response.cookies["last_login"].value)
+
+        main_response = self.client.get(reverse("main:show_main"))
+        self.assertContains(main_response, "Terakhir login:")
+        self.assertContains(
+            main_response,
+            login_response.cookies["last_login"].value,
+        )
+
+        logout_response = self.client.get(reverse("main:logout"))
+        self.assertEqual(logout_response.cookies["last_login"].value, "")
+        self.assertEqual(logout_response.cookies["last_login"]["max-age"], 0)
+
 # Experience Test
     def test_main_url_is_accessible(self):
         response = self.client.get(reverse("main:show_main"))
