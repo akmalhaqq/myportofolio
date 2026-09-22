@@ -22,7 +22,7 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=99" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=999" />
     {% block meta %} {% endblock meta %}
   </head>
   <body>
@@ -53,6 +53,16 @@
             </li>
             <li>
               <a href="{{ proj_url }}" class="nav_link nav-projects {% if request.path == proj_url %}active{% endif %}">Projects</a>
+            </li>
+
+            <li class="nav_auth">
+              {% if user.is_authenticated %}
+              <span class="nav_user">{{ user.username }}</span>
+              <a href="{% url 'main:logout' %}" class="nav_link">Logout</a>
+              {% else %}
+              <a href="{% url 'main:login' %}" class="nav_link">Login</a>
+              <a href="{% url 'main:register' %}" class="nav_link">Register</a>
+              {% endif %}
             </li>
 
             <li>

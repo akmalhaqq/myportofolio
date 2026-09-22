@@ -1,5 +1,7 @@
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
+
 from main.models import Experience, Project
 
 
@@ -26,6 +28,75 @@ class MainTest(TestCase):
             year=2026,
             image="img/gammafest.png",
         )
+
+# Authentication Test
+    def test_register_page_is_accessible(self):
+        response = self.client.get(reverse("main:register"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "register.html")
+
+    def test_register_creates_user_with_hashed_password(self):
+        response = self.client.post(reverse("main:register"), {
+            "username": "new_user",
+            "password1": "SafePassword123!",
+            "password2": "SafePassword123!",
+        })
+
+        self.assertRedirects(response, reverse("main:login"))
+        user = User.objects.get(username="new_user")
+        self.assertTrue(user.check_password("SafePassword123!"))
+
+    def test_register_rejects_mismatched_passwords(self):
+        response = self.client.post(reverse("main:register"), {
+            "username": "invalid_user",
+            "password1": "SafePassword123!",
+            "password2": "DifferentPassword123!",
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(User.objects.filter(username="invalid_user").exists())
+        self.assertContains(response, "The two password fields didn’t match.")
+
+    def test_login_logout_and_navbar_state(self):
+        user = User.objects.create_user(
+            username="visitor",
+            password="SafePassword123!",
+        )
+
+        anonymous_response = self.client.get(reverse("main:show_main"))
+        self.assertContains(anonymous_response, f'href="{reverse("main:login")}"')
+        self.assertContains(anonymous_response, f'href="{reverse("main:register")}"')
+
+        login_response = self.client.post(reverse("main:login"), {
+            "username": "visitor",
+            "password": "SafePassword123!",
+        })
+        self.assertRedirects(login_response, reverse("main:show_main"))
+        self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
+
+        authenticated_response = self.client.get(reverse("main:show_main"))
+        self.assertContains(authenticated_response, "visitor")
+        self.assertContains(authenticated_response, f'href="{reverse("main:logout")}"')
+
+        logout_response = self.client.get(reverse("main:logout"))
+        self.assertRedirects(logout_response, reverse("main:show_main"))
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_login_rejects_invalid_credentials(self):
+        User.objects.create_user(
+            username="visitor",
+            password="SafePassword123!",
+        )
+
+        response = self.client.post(reverse("main:login"), {
+            "username": "visitor",
+            "password": "wrong-password",
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertTrue(response.context["form"].non_field_errors())
 
 # Experience Test
     def test_main_url_is_accessible(self):

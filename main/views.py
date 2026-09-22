@@ -1,14 +1,15 @@
 from unicodedata import category
 import os
 
-from django.shortcuts import render
-
-from main.models import Experience, Project
-from main.forms import ProjectForm, ExperienceForm
 from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+
+from main.forms import ExperienceForm, ProjectForm
+from main.models import Experience, Project
 
 # Create your views here.
 def check_secret(request):
@@ -239,3 +240,36 @@ def delete_project(request, project_id):
 
     return redirect("main:show_projects")
 
+# Authentication
+def register(request):
+    form = UserCreationForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Akun berhasil dibuat. Silakan login.")
+        return redirect("main:login")
+
+    context = {
+        "name": "Muhammad Akmal Haqqani",
+        "form": form,
+    }
+    return render(request, "register.html", context)
+
+
+def login_user(request):
+    form = AuthenticationForm(request, data=request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        login(request, form.get_user())
+        return redirect("main:show_main")
+
+    context = {
+        "name": "Muhammad Akmal Haqqani",
+        "form": form,
+    }
+    return render(request, "login.html", context)
+
+
+def logout_user(request):
+    logout(request)
+    return redirect("main:show_main")
