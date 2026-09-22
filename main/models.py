@@ -1,8 +1,9 @@
+import uuid
+
+from django.contrib.auth.models import User
 from django.db import models
 
 # Create your models here.
-import uuid
-from django.db import models
 class Experience(models.Model):
 
     CATEGORY_CHOICES = [
@@ -69,6 +70,11 @@ class Project(models.Model):
         blank=True
     )
     year = models.PositiveIntegerField()
+    starred_by = models.ManyToManyField(
+        User,
+        related_name="starred_projects",
+        blank=True,
+    )
 
     class Meta:
         ordering=["order"]

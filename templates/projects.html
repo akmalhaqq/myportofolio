@@ -101,6 +101,7 @@
               </a>
               {% endif %}
             </div>
+            {% include "components/project_star.html" with project=project %}
             {% if user.is_superuser %}
             {% include "components/project_delete_modal.html" with project=project %}
             {% endif %}

@@ -452,3 +452,65 @@ class MainTest(TestCase):
         owner_response = self.client.post(delete_url)
         self.assertRedirects(owner_response, reverse("main:show_projects"))
         self.assertFalse(Project.objects.filter(id=self.project.id).exists())
+
+    def test_project_star_relation_and_reverse_relation(self):
+        user = User.objects.create_user(
+            username="star_user",
+            password="SafePassword123!",
+        )
+
+        self.project.starred_by.add(user)
+
+        self.assertTrue(self.project.starred_by.filter(pk=user.pk).exists())
+        self.assertTrue(user.starred_projects.filter(pk=self.project.pk).exists())
+
+    def test_toggle_star_requires_login_and_only_changes_on_post(self):
+        star_url = reverse("main:toggle_star", args=[self.project.id])
+
+        anonymous_response = self.client.post(star_url)
+        self.assertRedirects(
+            anonymous_response,
+            f'{reverse("main:login")}?next={star_url}',
+        )
+        self.assertEqual(self.project.starred_by.count(), 0)
+
+        user = User.objects.create_user(
+            username="star_user",
+            password="SafePassword123!",
+        )
+        self.client.force_login(user)
+
+        get_response = self.client.get(star_url)
+        self.assertRedirects(get_response, reverse("main:show_projects"))
+        self.assertEqual(self.project.starred_by.count(), 0)
+
+        add_response = self.client.post(star_url)
+        self.assertRedirects(add_response, reverse("main:show_projects"))
+        self.assertTrue(self.project.starred_by.filter(pk=user.pk).exists())
+
+        remove_response = self.client.post(star_url)
+        self.assertRedirects(remove_response, reverse("main:show_projects"))
+        self.assertFalse(self.project.starred_by.filter(pk=user.pk).exists())
+
+    def test_project_star_component_and_api_use_username(self):
+        user = User.objects.create_user(
+            username="star_user",
+            password="SafePassword123!",
+        )
+        self.project.starred_by.add(user)
+        self.client.force_login(user)
+
+        page_response = self.client.get(reverse("main:show_projects"))
+        self.assertContains(page_response, "Unstar")
+        self.assertContains(
+            page_response,
+            f'action="{reverse("main:toggle_star", args=[self.project.id])}"',
+        )
+
+        api_response = self.client.get(reverse("main:get_projects_json"))
+        project_data = next(
+            item
+            for item in api_response.json()
+            if item["pk"] == str(self.project.pk)
+        )
+        self.assertEqual(project_data["fields"]["starred_by"], [["star_user"]])
