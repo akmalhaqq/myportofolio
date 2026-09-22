@@ -30,12 +30,14 @@
           Selected works that explore AI, data, and computational problems.
         </h1>
         
-                <a
-    href="{% url 'main:create_project' %}"
-    class="button project-add-button"
-  >
-    + Tambah Project
-  </a>
+        {% if user.is_superuser %}
+        <a
+          href="{% url 'main:create_project' %}"
+          class="button project-add-button"
+        >
+          + Tambah Project
+        </a>
+        {% endif %}
       </div>
 
      <form method="GET" action="" class="project-search">
@@ -99,7 +101,9 @@
               </a>
               {% endif %}
             </div>
-                      {% include "components/project_delete_modal.html" with project=project %}
+            {% if user.is_superuser %}
+            {% include "components/project_delete_modal.html" with project=project %}
+            {% endif %}
 
     
           </div>

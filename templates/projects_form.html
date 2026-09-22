@@ -20,17 +20,6 @@
           {% endfor %}
         </div>
         {% endfor %}
-        <div class="form-group">
-          <label for="secret_code">Secret Code</label>
-          {% if messages %}
-            {% for message in messages %}
-              {% if message.tags == 'error' %}
-                <span class="auto-hide-message form-error-msg">{{ message }}</span>
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-          <input type="password" id="secret_code" name="secret_code" placeholder="Enter secret code" required>
-        </div>
         <button type="submit" class="button">Tambah Project</button>
         <a href="{% url 'main:show_projects' %}" class="button button-secondary"
           >Batal</a
@@ -39,12 +28,4 @@
     </div>
   </section>
 </main>
-<script>
-  setTimeout(function() {
-    var messages = document.querySelectorAll('.auto-hide-message');
-    messages.forEach(function(msg) {
-      msg.style.opacity = '0';
-    });
-  }, 2000);
-</script>
 {% endblock content %}

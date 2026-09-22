@@ -35,26 +35,6 @@
         </div>
         {% endfor %}
 
-        <div class="form-group">
-          <label for="secret_code">Secret Code</label>
-          <input
-            type="password"
-            id="secret_code"
-            name="secret_code"
-            placeholder="Enter secret code"
-            required
-          >
-          {% if messages %}
-            {% for message in messages %}
-              {% if 'error' in message.tags or message.tags == 'error' %}
-                <span class="form-error-msg" style="margin-top: 5px;">
-                  {{ message }}
-                </span>
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-        </div>
-
         <button type="submit" class="button">
           {{ submit_label }}
         </button>

@@ -154,7 +154,72 @@ class MainTest(TestCase):
         response = self.client.get(reverse("main:show_experience"))
         self.assertContains(response, "Belum ada pengalaman yang ditambahkan.")
 
-    def test_create_experience_success(self):
+    def test_experience_controls_are_only_visible_to_superuser(self):
+        create_url = reverse("main:create_experience")
+        update_url = reverse("main:update_experience", args=[self.experience.id])
+        delete_url = reverse("main:delete_experience", args=[self.experience.id])
+
+        anonymous_response = self.client.get(reverse("main:show_experience"))
+        self.assertNotContains(anonymous_response, f'href="{create_url}"')
+        self.assertNotContains(anonymous_response, f'href="{update_url}"')
+        self.assertNotContains(anonymous_response, f'action="{delete_url}"')
+
+        regular_user = User.objects.create_user(
+            username="regular_user",
+            password="SafePassword123!",
+        )
+        self.client.force_login(regular_user)
+        regular_response = self.client.get(reverse("main:show_experience"))
+        self.assertNotContains(regular_response, f'href="{create_url}"')
+        self.assertNotContains(regular_response, f'href="{update_url}"')
+        self.assertNotContains(regular_response, f'action="{delete_url}"')
+
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        self.client.force_login(superuser)
+        owner_response = self.client.get(reverse("main:show_experience"))
+        self.assertContains(owner_response, f'href="{create_url}"')
+        self.assertContains(owner_response, f'href="{update_url}"')
+        self.assertContains(owner_response, f'action="{delete_url}"')
+
+    def test_create_experience_requires_superuser(self):
+        create_url = reverse("main:create_experience")
+
+        anonymous_response = self.client.get(create_url)
+        self.assertRedirects(
+            anonymous_response,
+            f'{reverse("main:login")}?next={create_url}',
+        )
+
+        regular_user = User.objects.create_user(
+            username="regular_user",
+            password="SafePassword123!",
+        )
+        self.client.force_login(regular_user)
+        self.assertEqual(self.client.get(create_url).status_code, 403)
+
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        self.client.force_login(superuser)
+        owner_response = self.client.get(create_url)
+        self.assertEqual(owner_response.status_code, 200)
+        self.assertTemplateUsed(owner_response, "experience_form.html")
+        self.assertNotContains(owner_response, "Secret Code")
+
+    def test_superuser_can_create_experience_without_secret_code(self):
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        self.client.force_login(superuser)
+
         response = self.client.post(reverse("main:create_experience"), {
             "title": "New Experience",
             "company": "New Company",
@@ -162,65 +227,89 @@ class MainTest(TestCase):
             "category": "Internship",
             "description": "New description",
             "tags": "Python, Django",
-            "secret_code": "AkmalProjects2026"
         })
-        self.assertEqual(response.status_code, 302)
+
+        self.assertRedirects(response, reverse("main:show_experience"))
         self.assertTrue(Experience.objects.filter(title="New Experience").exists())
 
-    def test_create_experience_wrong_secret(self):
-        response = self.client.post(reverse("main:create_experience"), {
-            "title": "New Experience 2",
-            "company": "New Company",
-            "period": "2024",
-            "category": "Internship",
-            "description": "New description",
-            "tags": "Python, Django",
-            "secret_code": "wrongsecret"
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(Experience.objects.filter(title="New Experience 2").exists())
+    def test_update_experience_requires_superuser(self):
+        update_url = reverse("main:update_experience", args=[self.experience.id])
 
-    def test_update_experience_success(self):
-        response = self.client.post(reverse("main:update_experience", args=[self.experience.id]), {
-            "title": "Updated Title",
-            "company": self.experience.company,
-            "period": self.experience.period,
-            "category": self.experience.category,
-            "description": self.experience.description,
-            "tags": self.experience.tags,
-            "secret_code": "AkmalProjects2026"
-        })
-        self.assertEqual(response.status_code, 302)
+        anonymous_response = self.client.get(update_url)
+        self.assertRedirects(
+            anonymous_response,
+            f'{reverse("main:login")}?next={update_url}',
+        )
+
+        regular_user = User.objects.create_user(
+            username="regular_user",
+            password="SafePassword123!",
+        )
+        self.client.force_login(regular_user)
+        self.assertEqual(self.client.get(update_url).status_code, 403)
+
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        self.client.force_login(superuser)
+        owner_response = self.client.get(update_url)
+        self.assertEqual(owner_response.status_code, 200)
+        self.assertTemplateUsed(owner_response, "experience_form.html")
+        self.assertNotContains(owner_response, "Secret Code")
+
+    def test_superuser_can_update_experience_without_secret_code(self):
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        self.client.force_login(superuser)
+
+        response = self.client.post(
+            reverse("main:update_experience", args=[self.experience.id]),
+            {
+                "title": "Updated Title",
+                "company": self.experience.company,
+                "period": self.experience.period,
+                "category": self.experience.category,
+                "description": self.experience.description,
+                "tags": self.experience.tags,
+            },
+        )
+
+        self.assertRedirects(response, reverse("main:show_experience"))
         self.experience.refresh_from_db()
         self.assertEqual(self.experience.title, "Updated Title")
 
-    def test_update_experience_wrong_secret(self):
-        response = self.client.post(reverse("main:update_experience", args=[self.experience.id]), {
-            "title": "Updated Title 2",
-            "company": self.experience.company,
-            "period": self.experience.period,
-            "category": self.experience.category,
-            "description": self.experience.description,
-            "tags": self.experience.tags,
-            "secret_code": "wrongsecret"
-        })
-        self.assertEqual(response.status_code, 200)
-        self.experience.refresh_from_db()
-        self.assertNotEqual(self.experience.title, "Updated Title 2")
+    def test_delete_experience_requires_superuser(self):
+        delete_url = reverse("main:delete_experience", args=[self.experience.id])
 
-    def test_delete_experience_success(self):
-        response = self.client.post(reverse("main:delete_experience", args=[self.experience.id]), {
-            "secret_code": "AkmalProjects2026"
-        })
-        self.assertEqual(response.status_code, 302)
-        self.assertFalse(Experience.objects.filter(id=self.experience.id).exists())
-
-    def test_delete_experience_wrong_secret(self):
-        response = self.client.post(reverse("main:delete_experience", args=[self.experience.id]), {
-            "secret_code": "wrongsecret"
-        })
-        self.assertEqual(response.status_code, 302)
+        anonymous_response = self.client.post(delete_url)
+        self.assertRedirects(
+            anonymous_response,
+            f'{reverse("main:login")}?next={delete_url}',
+        )
         self.assertTrue(Experience.objects.filter(id=self.experience.id).exists())
+
+        regular_user = User.objects.create_user(
+            username="regular_user",
+            password="SafePassword123!",
+        )
+        self.client.force_login(regular_user)
+        self.assertEqual(self.client.post(delete_url).status_code, 403)
+        self.assertTrue(Experience.objects.filter(id=self.experience.id).exists())
+
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        self.client.force_login(superuser)
+        owner_response = self.client.post(delete_url)
+        self.assertRedirects(owner_response, reverse("main:show_experience"))
+        self.assertFalse(Experience.objects.filter(id=self.experience.id).exists())
 
 # Projects Test
 
@@ -258,3 +347,108 @@ class MainTest(TestCase):
             response,
             "Belum ada project yang ditambahkan"
         )
+
+    def test_project_controls_are_only_visible_to_superuser(self):
+        create_url = reverse("main:create_project")
+        delete_url = reverse("main:delete_project", args=[self.project.id])
+
+        anonymous_response = self.client.get(reverse("main:show_projects"))
+        self.assertNotContains(anonymous_response, f'href="{create_url}"')
+        self.assertNotContains(anonymous_response, f'action="{delete_url}"')
+
+        regular_user = User.objects.create_user(
+            username="regular_user",
+            password="SafePassword123!",
+        )
+        self.client.force_login(regular_user)
+        regular_response = self.client.get(reverse("main:show_projects"))
+        self.assertNotContains(regular_response, f'href="{create_url}"')
+        self.assertNotContains(regular_response, f'action="{delete_url}"')
+
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        self.client.force_login(superuser)
+        owner_response = self.client.get(reverse("main:show_projects"))
+        self.assertContains(owner_response, f'href="{create_url}"')
+        self.assertContains(owner_response, f'action="{delete_url}"')
+
+    def test_create_project_requires_superuser(self):
+        create_url = reverse("main:create_project")
+
+        anonymous_response = self.client.get(create_url)
+        self.assertRedirects(
+            anonymous_response,
+            f'{reverse("main:login")}?next={create_url}',
+        )
+
+        regular_user = User.objects.create_user(
+            username="regular_user",
+            password="SafePassword123!",
+        )
+        self.client.force_login(regular_user)
+        self.assertEqual(self.client.get(create_url).status_code, 403)
+
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        self.client.force_login(superuser)
+        owner_response = self.client.get(create_url)
+        self.assertEqual(owner_response.status_code, 200)
+        self.assertTemplateUsed(owner_response, "projects_form.html")
+        self.assertNotContains(owner_response, "Secret Code")
+
+    def test_superuser_can_create_project_without_secret_code(self):
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        self.client.force_login(superuser)
+
+        response = self.client.post(reverse("main:create_project"), {
+            "title": "Authorized Project",
+            "category": "Web Development",
+            "description": "Created by the portfolio owner.",
+            "tech_stack": "Django, Python",
+            "achievement": "",
+            "github_url": "",
+            "external_url": "",
+            "image": "",
+            "year": 2026,
+        })
+
+        self.assertRedirects(response, reverse("main:show_projects"))
+        self.assertTrue(Project.objects.filter(title="Authorized Project").exists())
+
+    def test_delete_project_requires_superuser(self):
+        delete_url = reverse("main:delete_project", args=[self.project.id])
+
+        anonymous_response = self.client.post(delete_url)
+        self.assertRedirects(
+            anonymous_response,
+            f'{reverse("main:login")}?next={delete_url}',
+        )
+        self.assertTrue(Project.objects.filter(id=self.project.id).exists())
+
+        regular_user = User.objects.create_user(
+            username="regular_user",
+            password="SafePassword123!",
+        )
+        self.client.force_login(regular_user)
+        self.assertEqual(self.client.post(delete_url).status_code, 403)
+        self.assertTrue(Project.objects.filter(id=self.project.id).exists())
+
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        self.client.force_login(superuser)
+        owner_response = self.client.post(delete_url)
+        self.assertRedirects(owner_response, reverse("main:show_projects"))
+        self.assertFalse(Project.objects.filter(id=self.project.id).exists())

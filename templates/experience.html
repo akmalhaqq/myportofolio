@@ -28,12 +28,14 @@
                 shaped how I work.
               </p>
             </div>
-            <a
-              href="{% url 'main:create_experience' %}"
-              class="button"
-            >
-              + Tambah Experience
-            </a>
+            {% if user.is_superuser %}
+              <a
+                href="{% url 'main:create_experience' %}"
+                class="button"
+              >
+                + Tambah Experience
+              </a>
+            {% endif %}
           </div>
         <div class="experience-filter">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
@@ -137,12 +139,14 @@
                   {% endfor %}
                 </div>
 
-                <div class="experience-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
-                  <a href="{% url 'main:update_experience' experience.id %}" class="button">
-                    Edit
-                  </a>
-                  {% include "components/experience_delete_modal.html" with experience=experience %}
-                </div>
+                {% if user.is_superuser %}
+                  <div class="experience-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                    <a href="{% url 'main:update_experience' experience.id %}" class="button">
+                      Edit
+                    </a>
+                    {% include "components/experience_delete_modal.html" with experience=experience %}
+                  </div>
+                {% endif %}
               </div>
             </article>
             {% empty %}

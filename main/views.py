@@ -1,10 +1,11 @@
 from unicodedata import category
-import os
 
 from django.contrib import messages
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -13,12 +14,6 @@ from main.forms import ExperienceForm, ProjectForm
 from main.models import Experience, Project
 
 # Create your views here.
-def check_secret(request):
-    secret = os.getenv("PROJECT_SECRET")
-    if not secret:
-        return False
-    return request.headers.get("X-SECRET-CODE") == secret or request.POST.get("secret_code") == secret
-
 def show_main(request):
     context = {
     "name": "Muhammad Akmal Haqqani",
@@ -77,32 +72,29 @@ def show_experience(request):
 
 # create experience 
 
+@login_required(login_url="/login/")
 def create_experience(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     form = ExperienceForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        if check_secret(request):
-            last_experience = Experience.objects.order_by("-order").first()
+        last_experience = Experience.objects.order_by("-order").first()
 
-            if last_experience:
-                form.instance.order = last_experience.order + 1
-            else:
-                form.instance.order = 1
-
-            form.save()
-
-            messages.success(
-                request,
-                "Experience berhasil ditambahkan!"
-            )
-
-            return redirect("main:show_experience")
-
+        if last_experience:
+            form.instance.order = last_experience.order + 1
         else:
-            messages.error(
-                request,
-                "Kode rahasia salah!"
-            )
+            form.instance.order = 1
+
+        form.save()
+
+        messages.success(
+            request,
+            "Experience berhasil ditambahkan!"
+        )
+
+        return redirect("main:show_experience")
 
     context = {
         "name": "Muhammad Akmal Haqqani",
@@ -118,7 +110,11 @@ def create_experience(request):
         context
     )
 # Update experience
+@login_required(login_url="/login/")
 def update_experience(request, experience_id):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     experience = get_object_or_404(
         Experience,
         pk=experience_id
@@ -130,21 +126,14 @@ def update_experience(request, experience_id):
     )
 
     if request.method == "POST" and form.is_valid():
-        if check_secret(request):
-            form.save()
+        form.save()
 
-            messages.success(
-                request,
-                "Experience berhasil diperbarui!"
-            )
+        messages.success(
+            request,
+            "Experience berhasil diperbarui!"
+        )
 
-            return redirect("main:show_experience")
-
-        else:
-            messages.error(
-                request,
-                "Kode rahasia salah!"
-            )
+        return redirect("main:show_experience")
 
     context = {
         "name": "Muhammad Akmal Haqqani",
@@ -161,24 +150,22 @@ def update_experience(request, experience_id):
     )
 
 # delete experience
+@login_required(login_url="/login/")
 def delete_experience(request, experience_id):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     experience = get_object_or_404(
         Experience,
         pk=experience_id
     )
 
     if request.method == "POST":
-        if check_secret(request):
-            experience.delete()
-            messages.success(
-                request,
-                "Experience berhasil dihapus!"
-            )
-        else:
-            messages.error(
-                request,
-                "Kode rahasia salah!"
-            )
+        experience.delete()
+        messages.success(
+            request,
+            "Experience berhasil dihapus!"
+        )
 
     return redirect("main:show_experience")
 
@@ -213,31 +200,33 @@ def show_projects(request):
 
       return render(request, "projects.html", context)
 # Delete and Create Project
+@login_required(login_url="/login/")
 def create_project(request):
+      if not request.user.is_superuser:
+            raise PermissionDenied
+
       form = ProjectForm(request.POST or None)
       if request.method == "POST" and form.is_valid():
-            if check_secret(request):
-                  form.save()
-                  messages.success(request, "Proyek baru berhasil ditambahkan!")
-                  return redirect("main:show_projects")
-            else:
-                  messages.error(request, "Kode rahasia salah!")
+            form.save()
+            messages.success(request, "Proyek baru berhasil ditambahkan!")
+            return redirect("main:show_projects")
 
       context = {
-            "name": "Burhan",
+            "name": "Muhammad Akmal Haqqani",
             "form": form,
              }
       return render(request, "projects_form.html", context)
 
+@login_required(login_url="/login/")
 def delete_project(request, project_id):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     project = get_object_or_404(Project, pk=project_id)
 
     if request.method == "POST":
-        if check_secret(request):
-            project.delete()
-            messages.success(request, "Project berhasil dihapus!")
-        else:
-            messages.error(request, "Kode rahasia salah!")
+        project.delete()
+        messages.success(request, "Project berhasil dihapus!")
         return redirect("main:show_projects")
 
     return redirect("main:show_projects")
