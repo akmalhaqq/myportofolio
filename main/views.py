@@ -9,6 +9,8 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.formats import date_format
+from django.utils.translation import override
 
 from main.forms import ExperienceForm, ProjectForm
 from main.models import Experience, Project
@@ -269,9 +271,9 @@ def login_user(request):
 
     if request.method == "POST" and form.is_valid():
         login(request, form.get_user())
-        login_time = timezone.localtime(timezone.now()).strftime(
-            "%Y-%m-%d %H:%M:%S WIB"
-        )
+        login_time_wib = timezone.localtime(timezone.now())
+        with override("id"):
+            login_time = f"{date_format(login_time_wib, 'j F Y, H:i:s')} WIB"
         response = redirect("main:show_main")
         response.set_cookie("last_login", login_time, samesite="Lax")
         return response

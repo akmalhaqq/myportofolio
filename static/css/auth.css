@@ -1,0 +1,38 @@
+
+/* AUTHENTICATION */
+.auth-page {
+  padding-top: 4rem;
+}
+
+.auth-container {
+  max-width: 720px;
+}
+
+.auth-container h1 {
+  margin-bottom: 1.5rem;
+}
+
+.auth-form {
+  max-width: 640px;
+  margin-top: 0;
+}
+
+.auth-form .form-group input {
+  min-height: 46px;
+}
+
+.auth-prompt {
+  margin-top: 1.25rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.auth-prompt a {
+  color: var(--accent-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-prompt a:hover {
+  text-decoration: underline;
+}

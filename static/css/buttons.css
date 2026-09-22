@@ -1,0 +1,70 @@
+
+.button {
+  display: inline-block;
+  height: fit-content;
+  border: 0;
+  border-radius: var(--radius);
+  padding: 0.65rem 1rem;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+.button:hover {
+  background: var(--accent-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(126, 168, 122, 0.4);
+}
+.button-secondary {
+  background: #526b50 ;
+}
+
+.button-danger {
+  background: #9b4d4d;
+  color: var(--paper);
+}
+
+.button-danger:hover {
+  background: #d32f2f;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
+}
+
+.button-secondary {
+  background: #526b50;
+  color: var(--ink);
+  border: 1px solid #526b50;
+}
+
+.button-secondary:hover {
+  background: #435842;
+  border-color: #435842;
+}
+
+.star-form {
+  display: inline-block;
+  margin-top: 1rem;
+}
+
+.button-star {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #526b50;
+  color: var(--ink);
+}
+
+.button-star.is-starred {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.star-count {
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 0.8rem;
+}

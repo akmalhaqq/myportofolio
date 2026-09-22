@@ -1,3 +1,6 @@
+from datetime import UTC, datetime
+from unittest.mock import patch
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
@@ -111,15 +114,17 @@ class MainTest(TestCase):
             password="SafePassword123!",
         )
 
-        login_response = self.client.post(reverse("main:login"), {
-            "username": "visitor",
-            "password": "SafePassword123!",
-        })
+        fixed_utc_time = datetime(2026, 7, 22, 16, 55, 15, tzinfo=UTC)
+        with patch("main.views.timezone.now", return_value=fixed_utc_time):
+            login_response = self.client.post(reverse("main:login"), {
+                "username": "visitor",
+                "password": "SafePassword123!",
+            })
 
         self.assertIn("last_login", login_response.cookies)
-        self.assertRegex(
+        self.assertEqual(
             login_response.cookies["last_login"].value,
-            r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} WIB$",
+            "22 Juli 2026, 23:55:15 WIB",
         )
 
         main_response = self.client.get(reverse("main:show_main"))
