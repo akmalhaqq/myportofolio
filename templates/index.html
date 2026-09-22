@@ -35,10 +35,11 @@
                 <dt>Program</dt>
                 <dd>{{study_program}}</dd>
               </div>
+              <div class="meta-row">
+                <dt>Sesi Terakhir Login</dt>
+                <dd>{{last_login}}</dd>
+              </div>
             </dl>
-            {% if user.is_authenticated and last_login %}
-            <p class="last-login">Terakhir login: {{ last_login }}</p>
-            {% endif %}
             <div class="social-links">
               <a
                 href="https://github.com/akmalhaqq"

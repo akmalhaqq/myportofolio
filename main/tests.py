@@ -99,6 +99,13 @@ class MainTest(TestCase):
         self.assertTrue(response.context["form"].non_field_errors())
 
     def test_last_login_cookie_lifecycle(self):
+        main_response = self.client.get(reverse("main:show_main"))
+        self.assertContains(main_response, "Sesi Terakhir Login")
+        self.assertContains(
+            main_response,
+            "Belum ada sesi login / Cookie tidak ditemukan",
+        )
+
         User.objects.create_user(
             username="visitor",
             password="SafePassword123!",
@@ -110,10 +117,13 @@ class MainTest(TestCase):
         })
 
         self.assertIn("last_login", login_response.cookies)
-        self.assertTrue(login_response.cookies["last_login"].value)
+        self.assertRegex(
+            login_response.cookies["last_login"].value,
+            r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} WIB$",
+        )
 
         main_response = self.client.get(reverse("main:show_main"))
-        self.assertContains(main_response, "Terakhir login:")
+        self.assertContains(main_response, "Sesi Terakhir Login")
         self.assertContains(
             main_response,
             login_response.cookies["last_login"].value,
@@ -122,6 +132,12 @@ class MainTest(TestCase):
         logout_response = self.client.get(reverse("main:logout"))
         self.assertEqual(logout_response.cookies["last_login"].value, "")
         self.assertEqual(logout_response.cookies["last_login"]["max-age"], 0)
+
+        main_response = self.client.get(reverse("main:show_main"))
+        self.assertContains(
+            main_response,
+            "Belum ada sesi login / Cookie tidak ditemukan",
+        )
 
 # Experience Test
     def test_main_url_is_accessible(self):

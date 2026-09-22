@@ -19,7 +19,8 @@ def show_main(request):
     "name": "Muhammad Akmal Haqqani",
     "npm": "2506548295",
     "study_program": "S1 Ilmu Komputer",
-    "last_login": request.COOKIES.get("last_login"),
+    "last_login": request.COOKIES.get("last_login")
+    or "Belum ada sesi login / Cookie tidak ditemukan",
     "bio": (
     "Hi, I’m Akmal, a Computer Science student at Universitas Indonesia" 
     "fascinated by AI, data, and mathematics. I like digging into"
@@ -269,7 +270,7 @@ def login_user(request):
     if request.method == "POST" and form.is_valid():
         login(request, form.get_user())
         login_time = timezone.localtime(timezone.now()).strftime(
-            "%d %B %Y, %H:%M:%S %Z"
+            "%Y-%m-%d %H:%M:%S WIB"
         )
         response = redirect("main:show_main")
         response.set_cookie("last_login", login_time, samesite="Lax")
