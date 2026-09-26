@@ -28,7 +28,12 @@ class Experience(models.Model):
     )
     description = models.TextField()
     tags = models.CharField(max_length=255, help_text ="Pisahkan dengan koma")
-
+    starred_by = models.ManyToManyField(
+        User,
+        related_name="starred_experiences",
+        blank=True,
+    )
+    
     class Meta:
         ordering = ["order"]
 
