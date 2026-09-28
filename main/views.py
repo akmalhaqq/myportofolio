@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.formats import date_format
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import override
 from django.views.decorators.http import require_POST
 
@@ -178,7 +179,7 @@ def delete_experience(request, experience_id):
     return redirect("main:show_experience")
 
 
-@login_required(login_url="/login/")
+@login_required(login_url="/login/", redirect_field_name=None)
 @require_POST
 def toggle_experience_star(request, experience_id):
     experience = get_object_or_404(Experience, pk=experience_id)
@@ -286,19 +287,27 @@ def register(request):
 
 def login_user(request):
     form = AuthenticationForm(request, data=request.POST or None)
+    next_url = request.POST.get("next") or request.GET.get("next", "")
+    if not next_url.startswith("/") or not url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = ""
 
     if request.method == "POST" and form.is_valid():
         login(request, form.get_user())
         login_time_wib = timezone.localtime(timezone.now())
         with override("id"):
             login_time = f"{date_format(login_time_wib, 'j F Y, H:i:s')} WIB"
-        response = redirect("main:show_main")
+        response = redirect(next_url or "main:show_main")
         response.set_cookie("last_login", login_time, samesite="Lax")
         return response
 
     context = {
         "name": "Muhammad Akmal Haqqani",
         "form": form,
+        "next_url": next_url,
     }
     return render(request, "login.html", context)
 
