@@ -139,6 +139,8 @@
                   {% endfor %}
                 </div>
 
+                {% include "components/experience_star.html" with experience=experience %}
+
                 {% if perms.main.change_experience %}
                   <div class="experience-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
                     <a href="{% url 'main:update_experience' experience.id %}" class="button">
