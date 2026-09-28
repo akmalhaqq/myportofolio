@@ -49,7 +49,11 @@ def get_experience_json(request):
             experiences = experiences.order_by("-title")
       # default is by order
 
-      experiences_json = serializers.serialize("json", experiences)
+      experiences_json = serializers.serialize(
+            "json",
+            experiences,
+            use_natural_foreign_keys=True,
+      )
       return HttpResponse(experiences_json, content_type="application/json")
 
 # show experience
