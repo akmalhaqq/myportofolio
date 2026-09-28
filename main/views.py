@@ -119,7 +119,7 @@ def create_experience(request):
 # Update experience
 @login_required(login_url="/login/")
 def update_experience(request, experience_id):
-    if not request.user.is_superuser:
+    if not request.user.has_perm("main.change_experience"):
         raise PermissionDenied
 
     experience = get_object_or_404(
