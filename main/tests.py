@@ -1,8 +1,8 @@
 from datetime import UTC, datetime
 from unittest.mock import patch
 
-from django.contrib.auth.models import User
-from django.test import TestCase
+from django.contrib.auth.models import Group, Permission, User
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from main.models import Experience, Project
@@ -535,3 +535,346 @@ class MainTest(TestCase):
             if item["pk"] == str(self.project.pk)
         )
         self.assertEqual(project_data["fields"]["starred_by"], [["star_user"]])
+
+
+class TugasFourTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.experience = Experience.objects.create(
+            order=1,
+            title="Teaching Assistant",
+            company="Fasilkom UI",
+            period="2026",
+            category="Teaching",
+            description="Helping students learn Django.",
+            tags="Django, Teaching",
+        )
+        cls.project = Project.objects.create(
+            title="Portfolio Project",
+            category="Web",
+            description="A portfolio project.",
+            tech_stack="Django",
+            year=2026,
+        )
+        cls.regular = User.objects.create_user(
+            username="regular",
+            email="private@example.test",
+            password="SafePassword123!",
+        )
+        cls.editor = User.objects.create_user(
+            username="editor",
+            password="SafePassword123!",
+        )
+        cls.owner = User.objects.create_superuser(
+            username="owner",
+            email="owner@example.test",
+            password="SafePassword123!",
+        )
+        editor_group = Group.objects.create(name="Editor")
+        editor_group.permissions.add(
+            Permission.objects.get(
+                content_type__app_label="main",
+                content_type__model="experience",
+                codename="change_experience",
+            )
+        )
+        cls.editor.groups.add(editor_group)
+
+    def experience_data(self, title):
+        return {
+            "title": title,
+            "company": "Fasilkom UI",
+            "period": "2026",
+            "category": "Teaching",
+            "description": "Helping students learn Django.",
+            "tags": "Django, Teaching",
+        }
+
+    def test_editor_group_grants_change_only(self):
+        self.assertTrue(self.editor.has_perm("main.change_experience"))
+        self.assertFalse(self.editor.has_perm("main.add_experience"))
+        self.assertFalse(self.editor.has_perm("main.delete_experience"))
+        self.assertFalse(self.regular.has_perm("main.change_experience"))
+
+    def test_public_pages_and_api_are_readable(self):
+        for url in (
+            reverse("main:show_main"),
+            reverse("main:show_experience"),
+            reverse("main:show_projects"),
+            reverse("main:get_experience_json"),
+            reverse("main:get_projects_json"),
+        ):
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 200)
+
+    def test_anonymous_management_actions_redirect_to_login(self):
+        urls = (
+            reverse("main:create_experience"),
+            reverse("main:update_experience", args=[self.experience.pk]),
+            reverse("main:delete_experience", args=[self.experience.pk]),
+        )
+        for url in urls:
+            for method in ("get", "post"):
+                with self.subTest(url=url, method=method):
+                    if method == "get":
+                        response = self.client.get(url)
+                    else:
+                        response = self.client.post(
+                            url, self.experience_data("Unauthorized")
+                        )
+                    self.assertRedirects(
+                        response, f'{reverse("main:login")}?next={url}'
+                    )
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Teaching Assistant")
+        self.assertEqual(Experience.objects.count(), 1)
+
+    def test_regular_user_gets_403_for_all_management_actions(self):
+        self.client.force_login(self.regular)
+        urls = (
+            reverse("main:create_experience"),
+            reverse("main:update_experience", args=[self.experience.pk]),
+            reverse("main:delete_experience", args=[self.experience.pk]),
+        )
+        for url in urls:
+            for method in ("get", "post"):
+                with self.subTest(url=url, method=method):
+                    if method == "get":
+                        response = self.client.get(url)
+                    else:
+                        response = self.client.post(
+                            url, self.experience_data("Unauthorized")
+                        )
+                    self.assertEqual(response.status_code, 403)
+                    self.assertTemplateUsed(response, "403.html")
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Teaching Assistant")
+        self.assertEqual(Experience.objects.count(), 1)
+
+    def test_editor_can_update_but_cannot_create_or_delete(self):
+        self.client.force_login(self.editor)
+        create_url = reverse("main:create_experience")
+        update_url = reverse("main:update_experience", args=[self.experience.pk])
+        delete_url = reverse("main:delete_experience", args=[self.experience.pk])
+
+        self.assertEqual(self.client.get(update_url).status_code, 200)
+        self.assertRedirects(
+            self.client.post(update_url, self.experience_data("Edited by Editor")),
+            reverse("main:show_experience"),
+        )
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Edited by Editor")
+
+        for url in (create_url, delete_url):
+            for method in ("get", "post"):
+                with self.subTest(url=url, method=method):
+                    if method == "get":
+                        response = self.client.get(url)
+                    else:
+                        response = self.client.post(
+                            url, self.experience_data("Not Allowed")
+                        )
+                    self.assertEqual(response.status_code, 403)
+        self.assertEqual(Experience.objects.count(), 1)
+
+    def test_owner_can_create_update_and_delete(self):
+        self.client.force_login(self.owner)
+        create_url = reverse("main:create_experience")
+        update_url = reverse("main:update_experience", args=[self.experience.pk])
+        delete_url = reverse("main:delete_experience", args=[self.experience.pk])
+
+        self.assertEqual(self.client.get(create_url).status_code, 200)
+        self.assertEqual(self.client.get(update_url).status_code, 200)
+        self.assertRedirects(
+            self.client.post(create_url, self.experience_data("New Experience")),
+            reverse("main:show_experience"),
+        )
+        self.assertTrue(Experience.objects.filter(title="New Experience").exists())
+        self.assertRedirects(
+            self.client.post(update_url, self.experience_data("Edited by Owner")),
+            reverse("main:show_experience"),
+        )
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Edited by Owner")
+        self.assertRedirects(self.client.get(delete_url), reverse("main:show_experience"))
+        self.assertTrue(Experience.objects.filter(pk=self.experience.pk).exists())
+        self.assertRedirects(
+            self.client.post(delete_url), reverse("main:show_experience")
+        )
+        self.assertFalse(Experience.objects.filter(pk=self.experience.pk).exists())
+
+    def test_action_controls_match_each_role(self):
+        create_url = reverse("main:create_experience")
+        update_url = reverse("main:update_experience", args=[self.experience.pk])
+        delete_url = reverse("main:delete_experience", args=[self.experience.pk])
+        for user, can_create, can_edit, can_delete in (
+            (None, False, False, False),
+            (self.regular, False, False, False),
+            (self.editor, False, True, False),
+            (self.owner, True, True, True),
+        ):
+            with self.subTest(user=user.username if user else "anonymous"):
+                self.client.logout()
+                if user:
+                    self.client.force_login(user)
+                content = self.client.get(
+                    reverse("main:show_experience")
+                ).content.decode()
+                self.assertEqual(f'href="{create_url}"' in content, can_create)
+                self.assertEqual(f'href="{update_url}"' in content, can_edit)
+                self.assertEqual(f'action="{delete_url}"' in content, can_delete)
+
+    def test_editor_cannot_manage_projects_but_can_star_them(self):
+        self.client.force_login(self.editor)
+        create_url = reverse("main:create_project")
+        delete_url = reverse("main:delete_project", args=[self.project.pk])
+        for url in (create_url, delete_url):
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 403)
+                self.assertEqual(self.client.post(url).status_code, 403)
+        self.assertTrue(Project.objects.filter(pk=self.project.pk).exists())
+
+        star_url = reverse("main:toggle_star", args=[self.project.pk])
+        self.assertRedirects(
+            self.client.post(star_url), reverse("main:show_projects")
+        )
+        self.assertTrue(self.project.starred_by.filter(pk=self.editor.pk).exists())
+
+    def test_experience_star_requires_login_and_post(self):
+        star_url = reverse("main:toggle_experience_star", args=[self.experience.pk])
+        list_url = reverse("main:show_experience")
+
+        self.assertRedirects(self.client.post(star_url), reverse("main:login"))
+        anonymous_page = self.client.get(list_url)
+        self.assertContains(
+            anonymous_page, f'href="{reverse("main:login")}?next={list_url}"'
+        )
+        self.assertEqual(self.experience.starred_by.count(), 0)
+
+        for count, user in enumerate((self.regular, self.editor, self.owner), 1):
+            with self.subTest(user=user.username):
+                self.client.force_login(user)
+                self.assertEqual(self.client.get(star_url).status_code, 405)
+                self.assertRedirects(self.client.post(star_url), list_url)
+                self.assertEqual(self.experience.starred_by.count(), count)
+                self.assertEqual(user.starred_experiences.count(), 1)
+
+        self.client.force_login(self.regular)
+        starred_page = self.client.get(list_url)
+        self.assertContains(starred_page, "Unstar")
+        self.assertContains(starred_page, '<span class="star-count">3</span>')
+        self.assertRedirects(self.client.post(star_url), list_url)
+        self.assertEqual(self.experience.starred_by.count(), 2)
+        unstarred_page = self.client.get(list_url)
+        self.assertNotContains(unstarred_page, "Unstar")
+        self.assertContains(unstarred_page, '<span class="star-count">2</span>')
+        self.assertRedirects(self.client.post(star_url), list_url)
+        self.assertEqual(self.experience.starred_by.count(), 3)
+        self.assertEqual(
+            self.experience.starred_by.filter(pk=self.regular.pk).count(), 1
+        )
+
+    def test_experience_mutations_require_csrf_token(self):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.regular)
+        star_url = reverse("main:toggle_experience_star", args=[self.experience.pk])
+        self.assertEqual(client.post(star_url).status_code, 403)
+        self.assertEqual(self.experience.starred_by.count(), 0)
+
+        client.get(reverse("main:show_experience"))
+        token = client.cookies["csrftoken"].value
+        response = client.post(star_url, {"csrfmiddlewaretoken": token})
+        self.assertRedirects(response, reverse("main:show_experience"))
+        self.assertEqual(self.experience.starred_by.count(), 1)
+
+        client.force_login(self.owner)
+        for url in (
+            reverse("main:create_experience"),
+            reverse("main:update_experience", args=[self.experience.pk]),
+            reverse("main:delete_experience", args=[self.experience.pk]),
+        ):
+            with self.subTest(url=url):
+                self.assertEqual(
+                    client.post(url, self.experience_data("Without CSRF")).status_code,
+                    403,
+                )
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Teaching Assistant")
+        self.assertEqual(Experience.objects.count(), 1)
+
+    def test_experience_json_is_public_and_uses_usernames(self):
+        self.experience.starred_by.add(self.regular)
+        Experience.objects.create(
+            order=2,
+            title="Alpha Teaching",
+            company="Fasilkom UI",
+            period="2025",
+            category="Teaching",
+            description="Another teaching role.",
+            tags="Teaching",
+        )
+        Experience.objects.create(
+            order=3,
+            title="Internship Role",
+            company="Company",
+            period="2024",
+            category="Internship",
+            description="An internship.",
+            tags="Python",
+        )
+        api_url = reverse("main:get_experience_json")
+        response = self.client.get(api_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response["Content-Type"].startswith("application/json"))
+        item = next(
+            item for item in response.json()
+            if item["pk"] == str(self.experience.pk)
+        )
+        self.assertEqual(item["fields"]["starred_by"], [["regular"]])
+        self.assertNotIn("private@example.test", response.content.decode())
+        self.assertNotIn("password", response.content.decode())
+
+        filtered = self.client.get(
+            api_url, {"category": "Teaching", "sort": "a-z"}
+        ).json()
+        self.assertEqual(
+            [item["fields"]["title"] for item in filtered],
+            ["Alpha Teaching", "Teaching Assistant"],
+        )
+
+    def test_login_next_allows_internal_path_but_rejects_external_url(self):
+        login_url = reverse("main:login")
+        list_url = reverse("main:show_experience")
+        safe_page = self.client.get(f"{login_url}?next={list_url}")
+        self.assertContains(safe_page, f'name="next" value="{list_url}"')
+        self.assertRedirects(
+            self.client.post(login_url, {
+                "username": "regular",
+                "password": "SafePassword123!",
+                "next": list_url,
+            }),
+            list_url,
+        )
+        self.client.logout()
+
+        invalid_login = self.client.post(login_url, {
+            "username": "regular",
+            "password": "wrong-password",
+            "next": list_url,
+        })
+        self.assertEqual(invalid_login.status_code, 200)
+        self.assertContains(invalid_login, f'name="next" value="{list_url}"')
+
+        for destination in ("https://evil.example/", "//evil.example/"):
+            with self.subTest(destination=destination):
+                page = self.client.get(login_url, {"next": destination})
+                self.assertNotContains(page, 'name="next"')
+                self.assertRedirects(
+                    self.client.post(login_url, {
+                        "username": "regular",
+                        "password": "SafePassword123!",
+                        "next": destination,
+                    }),
+                    reverse("main:show_main"),
+                )
+                self.client.logout()
