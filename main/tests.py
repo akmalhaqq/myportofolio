@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from unittest.mock import patch
 
-from django.contrib.auth.models import Group, Permission, User
+from django.contrib.auth.models import Group, User
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -570,15 +570,7 @@ class TugasFourTests(TestCase):
             email="owner@example.test",
             password="SafePassword123!",
         )
-        editor_group = Group.objects.create(name="Editor")
-        editor_group.permissions.add(
-            Permission.objects.get(
-                content_type__app_label="main",
-                content_type__model="experience",
-                codename="change_experience",
-            )
-        )
-        cls.editor.groups.add(editor_group)
+        cls.editor.groups.add(Group.objects.get(name="Editor"))
 
     def experience_data(self, title):
         return {
@@ -591,6 +583,12 @@ class TugasFourTests(TestCase):
         }
 
     def test_editor_group_grants_change_only(self):
+        self.assertEqual(
+            set(Group.objects.get(name="Editor").permissions.values_list(
+                "codename", flat=True
+            )),
+            {"change_experience"},
+        )
         self.assertTrue(self.editor.has_perm("main.change_experience"))
         self.assertFalse(self.editor.has_perm("main.add_experience"))
         self.assertFalse(self.editor.has_perm("main.delete_experience"))
