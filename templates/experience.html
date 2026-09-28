@@ -43,13 +43,14 @@
             
             <details class="sort-dropdown">
               <summary class="sort-dropdown__summary">
-                Sort: {% if sort_query == 'a-z' %}A - Z{% elif sort_query == 'z-a' %}Z - A{% else %}Terbaru{% endif %}
+                Sort: {% if sort_query == 'a-z' %}A - Z{% elif sort_query == 'z-a' %}Z - A{% elif sort_query == 'most-starred' %}Most Starred{% else %}Terbaru{% endif %}
                 <i class="ri-arrow-down-s-line"></i>
               </summary>
               <div class="sort-dropdown__menu">
                 <a href="?category={{ category_query }}&sort=" class="{% if not sort_query %}active{% endif %}">Terbaru</a>
                 <a href="?category={{ category_query }}&sort=a-z" class="{% if sort_query == 'a-z' %}active{% endif %}">A - Z (Title)</a>
                 <a href="?category={{ category_query }}&sort=z-a" class="{% if sort_query == 'z-a' %}active{% endif %}">Z - A (Title)</a>
+                <a href="?category={{ category_query }}&sort=most-starred" class="{% if sort_query == 'most-starred' %}active{% endif %}">Most Starred</a>
               </div>
             </details>
           </div>

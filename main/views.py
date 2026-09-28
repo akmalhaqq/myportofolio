@@ -1,3 +1,4 @@
+import json
 from unicodedata import category
 
 from django.contrib import messages
@@ -6,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -39,7 +41,7 @@ def get_experience_json(request):
       category_query = request.GET.get("category", "").strip()
       sort_query = request.GET.get("sort", "").strip()
 
-      experiences = Experience.objects.all()
+      experiences = Experience.objects.annotate(star_count=Count("starred_by"))
       if category_query:
             experiences = experiences.filter(
                   category__iexact = category_query
@@ -49,19 +51,30 @@ def get_experience_json(request):
             experiences = experiences.order_by("title")
       elif sort_query == "z-a":
             experiences = experiences.order_by("-title")
+      elif sort_query == "most-starred":
+            experiences = experiences.order_by("-star_count", "order", "pk")
       # default is by order
 
+      experiences = list(experiences)
       experiences_json = serializers.serialize(
             "json",
             experiences,
-            use_natural_foreign_keys=True,
+            fields=(
+                  "order", "title", "company", "period", "category",
+                  "description", "tags",
+            ),
       )
-      return HttpResponse(experiences_json, content_type="application/json")
+      payload = json.loads(experiences_json)
+      for item, experience in zip(payload, experiences):
+            item["fields"]["star_count"] = experience.star_count
+      return HttpResponse(json.dumps(payload), content_type="application/json")
 
 # show experience
 def show_experience(request):
         json_response = get_experience_json(request)
-        experiences = serializers.deserialize("json",json_response.content.decode("utf-8"))
+        experiences = serializers.deserialize(
+            "json", json_response.content.decode("utf-8"), ignorenonexistent=True
+        )
 
         experiences = [
             experience.object for experience in experiences

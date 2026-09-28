@@ -800,7 +800,7 @@ class TugasFourTests(TestCase):
         self.assertEqual(self.experience.title, "Teaching Assistant")
         self.assertEqual(Experience.objects.count(), 1)
 
-    def test_experience_json_is_public_and_uses_usernames(self):
+    def test_experience_json_is_public_and_only_exposes_star_count(self):
         self.experience.starred_by.add(self.regular)
         Experience.objects.create(
             order=2,
@@ -828,9 +828,14 @@ class TugasFourTests(TestCase):
             item for item in response.json()
             if item["pk"] == str(self.experience.pk)
         )
-        self.assertEqual(item["fields"]["starred_by"], [["regular"]])
+        self.assertEqual(item["fields"]["star_count"], 1)
+        self.assertNotIn("starred_by", item["fields"])
+        self.assertNotIn("regular", response.content.decode())
         self.assertNotIn("private@example.test", response.content.decode())
         self.assertNotIn("password", response.content.decode())
+        self.assertNotContains(
+            self.client.get(reverse("main:show_experience")), "Dibintangi oleh"
+        )
 
         filtered = self.client.get(
             api_url, {"category": "Teaching", "sort": "a-z"}
@@ -838,6 +843,80 @@ class TugasFourTests(TestCase):
         self.assertEqual(
             [item["fields"]["title"] for item in filtered],
             ["Alpha Teaching", "Teaching Assistant"],
+        )
+
+    def test_experience_most_starred_sort_preserves_filter_and_tie_order(self):
+        popular = Experience.objects.create(
+            order=2,
+            title="Popular Teaching",
+            company="Fasilkom UI",
+            period="2025",
+            category="Teaching",
+            description="Popular teaching role.",
+            tags="Teaching",
+        )
+        tied = Experience.objects.create(
+            order=3,
+            title="Internship Role",
+            company="Company",
+            period="2024",
+            category="Internship",
+            description="An internship.",
+            tags="Python",
+        )
+        Experience.objects.create(
+            order=4,
+            title="Unstarred Teaching",
+            company="Fasilkom UI",
+            period="2023",
+            category="Teaching",
+            description="Another teaching role.",
+            tags="Teaching",
+        )
+        self.experience.starred_by.add(self.regular)
+        popular.starred_by.add(self.regular, self.editor)
+        tied.starred_by.add(self.owner)
+
+        params = {"sort": "most-starred"}
+        expected = [
+            "Popular Teaching",
+            "Teaching Assistant",
+            "Internship Role",
+            "Unstarred Teaching",
+        ]
+        api_url = reverse("main:get_experience_json")
+        api_items = self.client.get(api_url, params).json()
+        self.assertEqual(
+            [item["fields"]["title"] for item in api_items], expected
+        )
+        self.assertEqual(
+            [item["fields"]["star_count"] for item in api_items], [2, 1, 1, 0]
+        )
+        self.assertTrue(
+            all("starred_by" not in item["fields"] for item in api_items)
+        )
+
+        page = self.client.get(reverse("main:show_experience"), params)
+        self.assertEqual(
+            [experience.title for experience in page.context["experience_list"]],
+            expected,
+        )
+        self.assertContains(page, "Sort: Most Starred")
+        self.assertContains(page, '<span class="star-count">2</span>')
+
+        self.client.force_login(self.regular)
+        logged_in_page = self.client.get(
+            reverse("main:show_experience"), params
+        )
+        self.assertContains(logged_in_page, "Jumlah star: 2")
+        self.assertNotContains(logged_in_page, "Dibintangi oleh")
+
+        filtered = self.client.get(
+            api_url, {"category": "Teaching", "sort": "most-starred"}
+        ).json()
+        self.assertEqual(
+            [item["fields"]["title"] for item in filtered],
+            ["Popular Teaching", "Teaching Assistant", "Unstarred Teaching"],
         )
 
     def test_login_next_allows_internal_path_but_rejects_external_url(self):
