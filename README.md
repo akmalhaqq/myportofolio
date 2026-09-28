@@ -414,3 +414,52 @@ Link Chat GPT: https://chatgpt.com/share/6aac2250-7ac0-83ec-a4d2-f4f56bb106df
 ## Kesimpulan
  
 Tugas 1 kita fokus pada HTML5 dan CSS3, dengan membangun struktur dan membangun layout pakai Grid dan Flexbox, sampai menerapkan responsive design dan animasi lewat CSS. Tugas 2 melanjutkannya dengan mengubah bagian Projects dari data statis di HTML jadi data dinamis lewat model, view, dan template Django, lengkap dengan unit test dan Django Admin. Tugas 3 saya lanjutkan lagi dengan menambahkan CRUD penuh (create, update, delete) untuk Experience, endpoint JSON, fitur filter kategori dan sorting, serta refactor template supaya seluruh halaman extend dari satu root template lewat template inheritance.
+
+
+# AI Disclosure
+## Tugas 4
+## Penggunaan AI
+
+Untuk Tugas 4, saya pakai ChatGPT sebagai teman belajar dan review selama menerapkan authentication dan authorization pada Experience. Saya juga minta bantuan untuk membaca requirement, memahami alur session dan cookie, meninjau keamanan API JSON, menyusun test case, serta membahas pengaturan role Editor di lokal dan PWS. ChatGPT ikut membantu perubahan kode dan test, tetapi keputusan fitur dan pengecekan hasilnya tetap saya lakukan berdasarkan kondisi project saya.
+
+Beberapa hal yang dibantu ChatGPT:
+
+- Menganalisis requirement dan rubrik Tugas 4, termasuk apa yang wajib dan apa yang bisa menjadi fitur tambahan untuk mengejar nilai 4.0.
+- Menjelaskan alur authentication dan authorization Django, dari request, URL, view, session, `request.user`, sampai pengecekan role dan template.
+- Membantu mengadaptasi pola hak akses dari Projects pada Tutorial 4 ke Experience, termasuk batasan untuk pengunjung, pengguna biasa, Editor, dan superuser.
+- Menjelaskan cara membuat Group Editor melalui Django Admin dan memberi izin `change_experience` kepada pengguna tertentu.
+- Meninjau respons API Experience agar identitas pengguna yang memberi Star tidak ditampilkan secara publik; API cukup mengirim jumlah Star.
+- Membantu membuat test case untuk hak akses, Star, CSRF, dan data yang dikirim endpoint JSON.
+- Membahas bahwa database lokal dan PWS berbeda, sehingga pengaturan user dan keanggotaan Group Editor pada deployment perlu dicek tersendiri.
+
+## Pendekatan Penggunaan AI
+
+Saya mulai dengan memberikan PDF tugas dan kondisi project yang sudah sampai Tutorial 4 pada bagian Projects. Setelah requirement-nya dipetakan, saya minta ChatGPT menjelaskan konsep authentication dan authorization dengan bahasa sederhana sebelum membahas implementasi pada Experience. Saya juga meminta perubahan dibagi menjadi beberapa bagian yang masuk akal supaya bisa saya pahami dan commit sendiri satu per satu.
+
+Saat membahas keamanan API, saya tidak berhenti pada test yang lulus. Saya tanya lagi apakah respons JSON benar-benar tidak membocorkan informasi penting, lalu memeriksa field yang dikirim. Dari situ saya minta agar daftar username pemberi Star disembunyikan, sementara jumlah Star tetap tersedia. Untuk deployment PWS, saya tanyakan alur pengaturan Editor melalui Django Admin karena konfigurasi user di lokal tidak otomatis berarti sudah berlaku di database PWS.
+
+## Keterbatasan AI yang Ditemukan
+
+ChatGPT sempat menyimpulkan API JSON sudah aman karena tidak mengirim email atau password. Setelah saya tanyakan lebih lanjut, ternyata field `starred_by` masih menampilkan username pengguna yang memberi Star. Ini menunjukkan test yang lulus belum tentu berarti semua aspek privasi sudah tertutup; saya tetap perlu melihat bentuk respons API yang sebenarnya dan mempertanyakan asumsi awal AI.
+
+AI juga tidak bisa memastikan pengaturan Editor di PWS hanya dari kondisi database lokal. Group dan izin bisa disiapkan lewat migrasi, tetapi akun yang menjadi anggota Editor pada deployment tetap perlu diatur dan diuji pada database PWS sendiri.
+
+## Perbaikan Manual
+
+Setelah berdiskusi dengan ChatGPT, saya memilih Experience sebagai bagian yang menerapkan pola Tutorial 4 dan menentukan agar Editor hanya boleh mengubah data, bukan membuat atau menghapusnya. Saya mengatur akun Editor melalui Django Admin lokal dan mencoba alur hak aksesnya di browser. Saya juga meminta perubahan API supaya yang ditampilkan hanya jumlah Star, bukan identitas pemberinya, lalu meninjau hasil test dan respons JSON setelah perubahan tersebut.
+
+Saya tetap bertanggung jawab memeriksa apakah perilaku aplikasi sesuai requirement, termasuk saat nantinya mengatur dan menguji akun Editor di PWS. Commit dan pengumpulan tugas juga saya lakukan sendiri.
+
+## Evaluasi Penggunaan AI
+
+ChatGPT paling membantu saat saya perlu memahami alur permission Django dan menghubungkan banyak bagian project yang saling berkaitan. Namun, kasus `starred_by` mengingatkan saya bahwa jawaban AI tidak boleh langsung dianggap final. Saya perlu menguji aplikasi, membaca respons yang nyata, dan meminta koreksi ketika ada bagian yang masih kurang aman atau tidak sesuai dengan keputusan saya.
+
+## Log Prompting
+
+Beberapa prompt yang saya gunakan selama Tugas 4:
+
+Link Chat GPT: [Percakapan AI Tugas 4](https://chatgpt.com/share/6ab9fd15-6884-83ec-a8d1-3cf86f722ce7)
+
+## Kesimpulan
+
+Tugas 4 melanjutkan fitur Experience dengan pembatasan hak akses sesuai peran dan fitur Star untuk pengguna yang login. Dari penggunaan AI kali ini, saya belajar bahwa implementasi yang terlihat berhasil masih perlu diperiksa dari sisi permission dan privasi data. AI membantu menjelaskan dan meninjau, tetapi saya tetap harus memahami keputusan yang diambil, menguji hasilnya, serta mengecek ulang konfigurasi lokal dan deployment.
