@@ -342,19 +342,23 @@ class MainTest(TestCase):
             self.assertTemplateUsed(response, "projects.html")
 
     def test_project_is_displayed(self):
-        response = self.client.get(
-            reverse("main:show_projects")
-        )
+        page_response = self.client.get(reverse("main:show_projects"))
+        self.assertContains(page_response, 'id="grid"')
+        self.assertNotContains(page_response, self.project.title)
 
-        self.assertContains(response, self.project.title)
-        self.assertContains(response, self.project.category)
-        self.assertContains(response, self.project.description)
-        self.assertContains(response, "Python")
-        self.assertContains(response, "Pandas")
-        self.assertContains(
-            response,
-            self.project.achievement
+        api_response = self.client.get(reverse("main:get_projects_json"))
+        self.assertEqual(api_response.status_code, 200)
+        project_data = next(
+            item for item in api_response.json()
+            if item["pk"] == str(self.project.pk)
         )
+        fields = project_data["fields"]
+        self.assertEqual(fields["title"], self.project.title)
+        self.assertEqual(fields["category"], self.project.category)
+        self.assertEqual(fields["description"], self.project.description)
+        self.assertEqual(fields["tech_stack"], self.project.tech_stack)
+        self.assertEqual(fields["achievement"], self.project.achievement)
+
     def test_empty_projects_page(self):
         Project.objects.all().delete()
 
@@ -370,12 +374,9 @@ class MainTest(TestCase):
         )
 
     def test_project_controls_are_only_visible_to_superuser(self):
-        create_url = reverse("main:create_project")
-        delete_url = reverse("main:delete_project", args=[self.project.id])
-
         anonymous_response = self.client.get(reverse("main:show_projects"))
-        self.assertNotContains(anonymous_response, f'href="{create_url}"')
-        self.assertNotContains(anonymous_response, f'action="{delete_url}"')
+        self.assertNotContains(anonymous_response, 'popovertarget="add-project-modal"')
+        self.assertNotContains(anonymous_response, 'id="project-form"')
 
         regular_user = User.objects.create_user(
             username="regular_user",
@@ -383,8 +384,8 @@ class MainTest(TestCase):
         )
         self.client.force_login(regular_user)
         regular_response = self.client.get(reverse("main:show_projects"))
-        self.assertNotContains(regular_response, f'href="{create_url}"')
-        self.assertNotContains(regular_response, f'action="{delete_url}"')
+        self.assertNotContains(regular_response, 'popovertarget="add-project-modal"')
+        self.assertNotContains(regular_response, 'id="project-form"')
 
         superuser = User.objects.create_superuser(
             username="portfolio_owner",
@@ -393,8 +394,8 @@ class MainTest(TestCase):
         )
         self.client.force_login(superuser)
         owner_response = self.client.get(reverse("main:show_projects"))
-        self.assertContains(owner_response, f'href="{create_url}"')
-        self.assertContains(owner_response, f'action="{delete_url}"')
+        self.assertContains(owner_response, 'popovertarget="add-project-modal"')
+        self.assertContains(owner_response, 'id="project-form"')
 
     def test_create_project_requires_superuser(self):
         create_url = reverse("main:create_project")
@@ -445,6 +446,100 @@ class MainTest(TestCase):
 
         self.assertRedirects(response, reverse("main:show_projects"))
         self.assertTrue(Project.objects.filter(title="Authorized Project").exists())
+
+    def test_project_ajax_search_filters_by_title(self):
+        response = self.client.get(
+            reverse("main:get_projects_json"), {"title": "score"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [item["fields"]["title"] for item in response.json()],
+            [self.project.title],
+        )
+        self.assertEqual(
+            self.client.get(
+                reverse("main:get_projects_json"), {"title": "unknown"}
+            ).json(),
+            [],
+        )
+
+    def test_create_project_ajax_requires_post_and_superuser(self):
+        ajax_url = reverse("main:create_project_ajax")
+        self.assertEqual(self.client.get(ajax_url).status_code, 405)
+        self.assertEqual(self.client.post(ajax_url).status_code, 403)
+
+        regular_user = User.objects.create_user(
+            username="regular_user", password="SafePassword123!"
+        )
+        self.client.force_login(regular_user)
+        self.assertEqual(self.client.post(ajax_url).status_code, 403)
+        self.assertEqual(Project.objects.count(), 1)
+
+    def test_create_project_ajax_strips_html_from_project_fields(self):
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        self.client.force_login(superuser)
+        response = self.client.post(reverse("main:create_project_ajax"), {
+            "title": "<b>New</b> Project",
+            "category": "Web",
+            "description": "Built with <em>Django</em>.",
+            "tech_stack": "<i>Python</i>, Django",
+            "year": 2026,
+        })
+
+        self.assertEqual(response.status_code, 201)
+        project = Project.objects.get(pk=response.json()["pk"])
+        self.assertEqual(project.title, "New Project")
+        self.assertEqual(project.description, "Built with Django.")
+        self.assertEqual(project.tech_stack, "Python, Django")
+
+    def test_create_project_ajax_rejects_html_only_title(self):
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        self.client.force_login(superuser)
+        response = self.client.post(reverse("main:create_project_ajax"), {
+            "title": '<img src="x" onerror="alert(1)">',
+            "category": "Web",
+            "description": "Description",
+            "tech_stack": "Django",
+            "year": 2026,
+        })
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("title", response.json()["errors"])
+        self.assertEqual(Project.objects.count(), 1)
+
+    def test_create_project_ajax_requires_csrf_token(self):
+        superuser = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="SafePassword123!",
+            email="owner@example.com",
+        )
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(superuser)
+        ajax_url = reverse("main:create_project_ajax")
+        project_data = {
+            "title": "CSRF Project",
+            "category": "Web",
+            "description": "Description",
+            "tech_stack": "Django",
+            "year": 2026,
+        }
+
+        self.assertEqual(client.post(ajax_url, project_data).status_code, 403)
+        client.get(reverse("main:show_projects"))
+        token = client.cookies["csrftoken"].value
+        self.assertEqual(
+            client.post(ajax_url, project_data, HTTP_X_CSRFTOKEN=token).status_code,
+            201,
+        )
+        self.assertTrue(Project.objects.filter(title="CSRF Project").exists())
 
     def test_delete_project_requires_superuser(self):
         delete_url = reverse("main:delete_project", args=[self.project.id])
@@ -521,20 +616,19 @@ class MainTest(TestCase):
         self.project.starred_by.add(user)
         self.client.force_login(user)
 
-        page_response = self.client.get(reverse("main:show_projects"))
-        self.assertContains(page_response, "Unstar")
-        self.assertContains(
-            page_response,
-            f'action="{reverse("main:toggle_star", args=[self.project.id])}"',
-        )
-
         api_response = self.client.get(reverse("main:get_projects_json"))
         project_data = next(
             item
             for item in api_response.json()
             if item["pk"] == str(self.project.pk)
         )
-        self.assertEqual(project_data["fields"]["starred_by"], [["star_user"]])
+        self.assertEqual(project_data["fields"]["star_count"], 1)
+        self.assertTrue(project_data["fields"]["is_starred"])
+        self.assertEqual(project_data["fields"]["starred_by_names"], "star_user")
+
+        self.client.logout()
+        anonymous_project = self.client.get(reverse("main:get_projects_json")).json()[0]
+        self.assertFalse(anonymous_project["fields"]["is_starred"])
 
 
 class TugasFourTests(TestCase):

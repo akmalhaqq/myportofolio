@@ -12,9 +12,11 @@
       class="messages-container"
       style="max-width: 1200px; margin: 0 auto 2rem auto; padding: 0 20px"
     >
-      {% for message in messages %} {% if message.tags == 'error' %}
+      {% for message in messages %}
+      {% if message.tags == 'error' %}
       <div class="auto-hide-message global-error-msg">{{ message }}</div>
-      {% endif %} {% endfor %}
+      {% endif %}
+      {% endfor %}
     </div>
     {% endif %}
     <div class="projects-header">
@@ -63,8 +65,9 @@
     <div id="grid" class="projects-list hide"></div>
   </section>
 </main>
-{% if user.is_superuser %} {% include "components/project_form_modal.html" %} {%
-endif %}
+{% if user.is_superuser %}
+{% include "components/project_form_modal.html" %}
+{% endif %}
 <script>
   setTimeout(function () {
     var messages = document.querySelectorAll(".auto-hide-message");
