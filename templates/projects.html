@@ -25,12 +25,14 @@
       </h1>
 
       {% if user.is_superuser %}
-      <a
-        href="{% url 'main:create_project' %}"
+      <button
+        type="button"
         class="button project-add-button"
+        popovertarget="add-project-modal"
       >
-        + Tambah Project
-      </a>
+        <span aria-hidden="true">+</span>
+        Tambah Project
+      </button>
       {% endif %}
     </div>
 
@@ -61,6 +63,8 @@
     <div id="grid" class="projects-list hide"></div>
   </section>
 </main>
+{% if user.is_superuser %} {% include "components/project_form_modal.html" %} {%
+endif %}
 <script>
   setTimeout(function () {
     var messages = document.querySelectorAll(".auto-hide-message");
@@ -275,6 +279,9 @@
     clearTimeout(searchDebounceTimer);
     searchProjects();
   });
+  function closeProjectModal() {
+    document.getElementById("add-project-modal").hidePopover();
+  }
 
   fetchProjects(searchInput.value.trim());
 </script>

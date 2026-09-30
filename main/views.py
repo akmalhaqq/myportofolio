@@ -246,6 +246,7 @@ def show_projects(request):
     context = {
         "name": "Muhammad Akmal Haqqani",
         "title_query": request.GET.get("title", "").strip(),
+        "form":ProjectForm(),
     }
     return render(request, "projects.html", context)
 # Delete and Create Project
