@@ -41,27 +41,45 @@
 
         <!--Menu Toggle-->
         <input type="checkbox" id="nav-toggle" class="nav_checkbox" />
-        <label for="nav-toggle" class="nav_backdrop" aria-label="Tutup menu"></label>
+        <label
+          for="nav-toggle"
+          class="nav_backdrop"
+          aria-label="Tutup menu"
+        ></label>
 
         <div class="nav_menu" id="nav-menu">
           <ul class="nav_list">
-            {% url 'main:show_main' as main_url %}
-            {% url 'main:show_experience' as exp_url %}
-            {% url 'main:show_projects' as proj_url %}
+            {% url 'main:show_main' as main_url %} {% url 'main:show_experience' as exp_url %} {% url 'main:show_projects' as proj_url %}
             <li>
-              <a href="{{ main_url }}" class="nav_link nav-home {% if request.path == main_url %}active{% endif %}">Home</a>
+              <a
+                href="{{ main_url }}"
+                class="nav_link nav-home {% if request.path == main_url %}active{% endif %}"
+                >Home</a
+              >
             </li>
             <li>
-              <a href="{{ main_url }}#about" class="nav_link nav-about">About</a>
+              <a href="{{ main_url }}#about" class="nav_link nav-about"
+                >About</a
+              >
             </li>
             <li>
-              <a href="{{ main_url }}#skills" class="nav_link nav-skills">Skills</a>
+              <a href="{{ main_url }}#skills" class="nav_link nav-skills"
+                >Skills</a
+              >
             </li>
             <li>
-              <a href="{{ exp_url }}" class="nav_link nav-experience {% if request.path == exp_url %}active{% endif %}">Experience</a>
+              <a
+                href="{{ exp_url }}"
+                class="nav_link nav-experience {% if request.path == exp_url %}active{% endif %}"
+                >Experience</a
+              >
             </li>
             <li>
-              <a href="{{ proj_url }}" class="nav_link nav-projects {% if request.path == proj_url %}active{% endif %}">Projects</a>
+              <a
+                href="{{ proj_url }}"
+                class="nav_link nav-projects {% if request.path == proj_url %}active{% endif %}"
+                >Projects</a
+              >
             </li>
 
             <li class="nav_auth">
@@ -123,5 +141,6 @@
         </div>
       </div>
     </footer>
+    {% include 'components/toast.html' %}
   </body>
 </html>
