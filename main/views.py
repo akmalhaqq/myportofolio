@@ -8,7 +8,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -206,38 +206,48 @@ def toggle_experience_star(request, experience_id):
 
 #get project and show project
 def get_projects_json(request):
-      title_query = request.GET.get("title", "").strip()
-      projects = Project.objects.all()
+    title_query = request.GET.get("title", "").strip()
+    projects = Project.objects.prefetch_related("starred_by").all()
 
-      if title_query:
-            projects = projects.filter(title__icontains = title_query)
+    if title_query:
+        projects = projects.filter(title__icontains=title_query)
 
-      projects_json = serializers.serialize(
-            "json",
-            projects,
-            use_natural_foreign_keys=True,
-      )
+    data = []
 
-      return HttpResponse(projects_json, content_type= "application/json")
+    for project in projects:
+        starred_users = list(project.starred_by.all())
+
+        data.append({
+            "pk": str(project.id),
+            "fields": {
+                "title": project.title,
+                "category": project.category,
+                "description": project.description,
+                "tech_stack": project.tech_stack,
+                "achievement": project.achievement,
+                "github_url": project.github_url,
+                "external_url": project.external_url,
+                "image": project.image,
+                "year": project.year,
+                "star_count": len(starred_users),
+                "is_starred": (
+                    request.user.is_authenticated
+                    and any(user.pk == request.user.pk for user in starred_users)
+                ),
+                "starred_by_names": ", ".join(
+                    user.username for user in starred_users
+                ),
+            },
+        })
+
+    return JsonResponse(data, safe=False)
 
 def show_projects(request):
-      json_response = get_projects_json(request)
-      projects = serializers.deserialize(
-            "json",
-            json_response.content.decode("utf-8"),
-            )
-      
-      projects = [project.object for project in projects]
-
-      title_query = request.GET.get("title", "").strip()
-
-      context = {
-            "name":"Muhammad Akmal Haqqani",
-            "project_list": projects,
-            "title_query":title_query,
-      }
-
-      return render(request, "projects.html", context)
+    context = {
+        "name": "Muhammad Akmal Haqqani",
+        "title_query": request.GET.get("title", "").strip(),
+    }
+    return render(request, "projects.html", context)
 # Delete and Create Project
 @login_required(login_url="/login/")
 def create_project(request):

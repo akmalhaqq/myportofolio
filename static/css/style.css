@@ -290,3 +290,7 @@ body:has(#skills:target) .nav-skills::before {
 .toast-normal {
   border-left: 4px solid var(--accent);
 }
+
+.hide {
+  display: none !important;
+}

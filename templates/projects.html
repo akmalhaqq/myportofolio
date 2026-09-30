@@ -1,130 +1,269 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} {% block meta %}
+<title>Projects - {{name}}</title>
+{% endblock meta %}
 
-    {% block meta %}
-    <title>Projects - {{name}}</title>
-    {% endblock meta %}
+<!--Project-->
 
+{% block content %}
+<main>
+  <section class="projects-section" id="projects">
+    {% if messages %}
+    <div
+      class="messages-container"
+      style="max-width: 1200px; margin: 0 auto 2rem auto; padding: 0 20px"
+    >
+      {% for message in messages %} {% if message.tags == 'error' %}
+      <div class="auto-hide-message global-error-msg">{{ message }}</div>
+      {% endif %} {% endfor %}
+    </div>
+    {% endif %}
+    <div class="projects-header">
+      <p class="projects-eyebrow">PROJECTS</p>
 
+      <h1 class="projects-heading">
+        Selected works that explore AI, data, and computational problems.
+      </h1>
 
-    <!--Project-->
-
-  {% block content %}
-  <main>
-    <section class="projects-section" id="projects">
-      {% if messages %}
-        <div class="messages-container" style="max-width: 1200px; margin: 0 auto 2rem auto; padding: 0 20px;">
-          {% for message in messages %}
-            {% if message.tags == 'error' %}
-              <div class="auto-hide-message global-error-msg">
-                {{ message }}
-              </div>
-            {% endif %}
-          {% endfor %}
-        </div>
+      {% if user.is_superuser %}
+      <a
+        href="{% url 'main:create_project' %}"
+        class="button project-add-button"
+      >
+        + Tambah Project
+      </a>
       {% endif %}
-      <div class="projects-header">
-        
-        <p class="projects-eyebrow">PROJECTS</p>
+    </div>
 
-        <h1 class="projects-heading">
-          Selected works that explore AI, data, and computational problems.
-        </h1>
-        
-        {% if user.is_superuser %}
-        <a
-          href="{% url 'main:create_project' %}"
-          class="button project-add-button"
-        >
-          + Tambah Project
-        </a>
-        {% endif %}
-      </div>
-
-     <form method="GET" action="" class="project-search">
-  <input
-        type="text"
+    <form id="project-search-form" class="project-search">
+      <input
+        id="search-input"
+        type="search"
         name="title"
         value="{{ title_query }}"
         placeholder="Search projects..."
+        aria-label="Cari proyek berdasarkan judul"
       />
       <button type="submit" class="button">Search</button>
-  </form>
+    </form>
 
-      <div class="projects-list">
-        {% for project in project_list %}
-        <article class="project-item">
-          {% if project.image %}
-          <img
-            class="project-background"
-            src="{{ project.image}}"
-            alt=""
-            aria-hidden="true"
-          />
-          {% endif %}
+    <div id="loading" class="empty-state hide">
+      <p>Memuat projects...</p>
+    </div>
 
-          <div class="project-index">
-            {{ forloop.counter|stringformat:"02d" }}
-          </div>
+    <div id="error" class="empty-state hide">
+      <p>Gagal memuat data projects. Silakan coba lagi.</p>
+    </div>
 
-          <div class="project-content">
-            <span class="project-category"> {{project.category}} </span>
+    <div id="empty" class="empty-state hide">
+      <p>Belum ada project yang ditambahkan atau ditemukan.</p>
+    </div>
 
-            <h3>{{project.title}}</h3>
-
-            <p class="project-description">{{project.description}}</p>
-
-            <div class="project-tech">
-              {% for tech in project.tech_list %}
-              <span>{{ tech }}</span>
-              {% endfor %}
-            </div>
-
-            {% if project.achievement %}
-            <p class="project-achievement">{{project.achievement}}</p>
-            {% endif %}
-            <div class="project-links">
-              {% if project.github_url %}
-              <a
-                href="{{project.github_url}}"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GitHub ↗
-              </a>
-              {% endif %} {% if project.external_url %}
-              <a
-                href="{{project.external_url}}"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View project ↗
-              </a>
-              {% endif %}
-            </div>
-            {% include "components/project_star.html" with project=project %}
-            {% if user.is_superuser %}
-            {% include "components/project_delete_modal.html" with project=project %}
-            {% endif %}
-
-    
-          </div>
-
-          <div class="project-year">{{project.year}}</div>
-        </article>
-
-        {% empty %}
-        <p class="empty-state">Belum ada project yang ditambahkan</p>
-
-        {% endfor %}
-      </div>
-    </section>
-  </main>
+    <div id="grid" class="projects-list hide"></div>
+  </section>
+</main>
 <script>
-  setTimeout(function() {
-    var messages = document.querySelectorAll('.auto-hide-message');
-    messages.forEach(function(msg) {
-      msg.style.opacity = '0';
+  setTimeout(function () {
+    var messages = document.querySelectorAll(".auto-hide-message");
+    messages.forEach(function (msg) {
+      msg.style.opacity = "0";
     });
   }, 2000);
 </script>
- {% endblock content %}
+<script>
+  const BASE_PROJECTS_ENDPOINT = "{% url 'main:get_projects_json' %}";
+  const STAR_URL_TEMPLATE =
+    "{% url 'main:toggle_star' '00000000-0000-0000-0000-000000000000' %}";
+  const DELETE_URL_TEMPLATE =
+    "{% url 'main:delete_project' '00000000-0000-0000-0000-000000000000' %}";
+  const ID_PLACEHOLDER = "00000000-0000-0000-0000-000000000000";
+  const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+
+  const loadingState = document.getElementById("loading");
+  const errorState = document.getElementById("error");
+  const emptyState = document.getElementById("empty");
+  const gridContainer = document.getElementById("grid");
+  const searchForm = document.getElementById("project-search-form");
+  const searchInput = document.getElementById("search-input");
+
+  let projectsAbortController;
+
+  function displayPageSection({
+    showLoading = false,
+    showError = false,
+    showEmpty = false,
+    showGrid = false,
+  } = {}) {
+    loadingState.classList.toggle("hide", !showLoading);
+    errorState.classList.toggle("hide", !showError);
+    emptyState.classList.toggle("hide", !showEmpty);
+    gridContainer.classList.toggle("hide", !showGrid);
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function buildProjectCardElement(item, index) {
+    const project = item.fields;
+    const projectId = item.pk;
+    const article = document.createElement("article");
+
+    article.className = "project-item";
+
+    const starUrl = STAR_URL_TEMPLATE.replace(ID_PLACEHOLDER, projectId);
+    const deleteUrl = DELETE_URL_TEMPLATE.replace(ID_PLACEHOLDER, projectId);
+
+    const imageHtml = project.image
+      ? `<img class="project-background"
+              src="${escapeHtml(project.image)}"
+              alt=""
+              aria-hidden="true" />`
+      : "";
+
+    const techHtml = String(project.tech_stack ?? "")
+      .split(",")
+      .map((tech) => tech.trim())
+      .filter(Boolean)
+      .map((tech) => `<span>${escapeHtml(tech)}</span>`)
+      .join("");
+
+    const achievementHtml = project.achievement
+      ? `<p class="project-achievement">${escapeHtml(project.achievement)}</p>`
+      : "";
+
+    const githubHtml = project.github_url
+      ? `<a href="${escapeHtml(project.github_url)}"
+            target="_blank"
+            rel="noopener noreferrer">GitHub ↗</a>`
+      : "";
+
+    const externalHtml = project.external_url
+      ? `<a href="${escapeHtml(project.external_url)}"
+            target="_blank"
+            rel="noopener noreferrer">View project ↗</a>`
+      : "";
+
+    const starClass = project.is_starred ? " is-starred" : "";
+    const starText = project.is_starred ? "Unstar" : "Star";
+    const starTitle =
+      project.star_count > 0
+        ? `Dibintangi oleh ${escapeHtml(project.starred_by_names)}`
+        : "Jadilah yang pertama memberi star";
+
+    const deleteHtml = IS_SUPERUSER
+      ? `
+        <form method="post" action="${deleteUrl}">
+          {% csrf_token %}
+          <button
+            type="submit"
+            class="button button-danger"
+            onclick="return confirm('Yakin ingin menghapus project ini?');"
+          >
+            Hapus Proyek
+          </button>
+        </form>
+      `
+      : "";
+
+    article.innerHTML = `
+      ${imageHtml}
+
+      <div class="project-index">
+        ${String(index + 1).padStart(2, "0")}
+      </div>
+
+      <div class="project-content">
+        <span class="project-category">${escapeHtml(project.category)}</span>
+        <h3>${escapeHtml(project.title)}</h3>
+        <p class="project-description">
+          ${escapeHtml(project.description)}
+        </p>
+
+        <div class="project-tech">${techHtml}</div>
+        ${achievementHtml}
+
+        <div class="project-links">
+          ${githubHtml}
+          ${externalHtml}
+        </div>
+
+        <form method="post" action="${starUrl}" class="star-form">
+          {% csrf_token %}
+          <button
+            type="submit"
+            class="button button-star${starClass}"
+            title="${starTitle}"
+          >
+            <span aria-hidden="true">★</span>
+            ${starText}
+            <span class="star-count">
+              ${escapeHtml(project.star_count)}
+            </span>
+          </button>
+        </form>
+
+        ${deleteHtml}
+      </div>
+
+      <div class="project-year">${escapeHtml(project.year)}</div>
+    `;
+
+    return article;
+  }
+
+  async function fetchProjects(searchQuery = "") {
+    if (projectsAbortController) {
+      projectsAbortController.abort();
+    }
+
+    projectsAbortController = new AbortController();
+    displayPageSection({ showLoading: true });
+
+    const url = searchQuery
+      ? `${BASE_PROJECTS_ENDPOINT}?title=${encodeURIComponent(searchQuery)}`
+      : BASE_PROJECTS_ENDPOINT;
+
+    try {
+      const response = await fetch(url, {
+        headers: { Accept: "application/json" },
+        signal: projectsAbortController.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const projects = await response.json();
+      gridContainer.replaceChildren();
+
+      if (projects.length === 0) {
+        displayPageSection({ showEmpty: true });
+        return;
+      }
+
+      projects.forEach((item, index) => {
+        gridContainer.appendChild(buildProjectCardElement(item, index));
+      });
+
+      displayPageSection({ showGrid: true });
+    } catch (error) {
+      if (error.name === "AbortError") return;
+
+      console.error("Error loading projects:", error);
+      displayPageSection({ showError: true });
+    }
+  }
+
+  searchForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+    fetchProjects(searchInput.value.trim());
+  });
+
+  fetchProjects(searchInput.value.trim());
+</script>
+{% endblock content %}
