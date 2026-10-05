@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group, User
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from main.forms import ExperienceForm
 from main.models import Experience, Project
 
 
@@ -164,10 +165,18 @@ class MainTest(TestCase):
         response = self.client.get(reverse("main:show_experience"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
-        self.assertContains(response, self.experience.title)
-        self.assertContains(response, self.experience.company)
-        self.assertContains(response, self.experience.description)
-        self.assertContains(response, "Teaching")
+        self.assertNotContains(response, self.experience.title)
+        self.assertNotContains(response, self.experience.company)
+        self.assertNotContains(response, self.experience.description)
+        self.assertContains(response, 'id="experience-search-input"')
+        self.assertContains(response, 'id="experience-loading"')
+        self.assertContains(response, 'id="experience-error"')
+        self.assertContains(response, 'id="experience-empty"')
+        self.assertContains(response, 'id="experience-list"')
+        self.assertEqual(
+            self.client.get(reverse("main:get_experience_json")).json()[0]["fields"]["title"],
+            self.experience.title,
+        )
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
 
     def test_experience_page_does_not_depend_on_json_view(self):
@@ -175,22 +184,56 @@ class MainTest(TestCase):
             response = self.client.get(reverse("main:show_experience"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.experience.title)
+        self.assertNotContains(response, self.experience.title)
 
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
         response = self.client.get(reverse("main:show_experience"))
-        self.assertContains(response, "Belum ada pengalaman yang ditambahkan.")
+        self.assertContains(response, "Belum ada pengalaman yang ditambahkan atau ditemukan.")
+        self.assertEqual(self.client.get(reverse("main:get_experience_json")).json(), [])
 
-    def test_experience_controls_are_only_visible_to_superuser(self):
+    def test_experience_form_strips_tags_from_text_fields(self):
+        form = ExperienceForm({
+            "category": "Teaching",
+            "title": "<b>Teaching Assistant</b>",
+            "company": "<i>Fasilkom UI</i>",
+            "period": "<span>2026</span>",
+            "description": "Helped <em>students</em>.",
+            "tags": "<strong>Django</strong>, Teaching",
+        })
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["title"], "Teaching Assistant")
+        self.assertEqual(form.cleaned_data["company"], "Fasilkom UI")
+        self.assertEqual(form.cleaned_data["period"], "2026")
+        self.assertEqual(form.cleaned_data["description"], "Helped students.")
+        self.assertEqual(form.cleaned_data["tags"], "Django, Teaching")
+
+    def test_experience_form_rejects_html_only_text_fields(self):
+        data = {
+            "category": "Teaching",
+            "title": "Teaching Assistant",
+            "company": "Fasilkom UI",
+            "period": "2026",
+            "description": "Helping students.",
+            "tags": "Django",
+        }
+        for field in ("title", "company", "period", "description", "tags"):
+            with self.subTest(field=field):
+                form = ExperienceForm({
+                    **data,
+                    field: '<img src="x" onerror="alert(1)">',
+                })
+                self.assertFalse(form.is_valid())
+                self.assertIn(field, form.errors)
+
+    def test_experience_renderer_permissions_match_user_role(self):
         create_url = reverse("main:create_experience")
-        update_url = reverse("main:update_experience", args=[self.experience.id])
-        delete_url = reverse("main:delete_experience", args=[self.experience.id])
 
         anonymous_response = self.client.get(reverse("main:show_experience"))
         self.assertNotContains(anonymous_response, f'href="{create_url}"')
-        self.assertNotContains(anonymous_response, f'href="{update_url}"')
-        self.assertNotContains(anonymous_response, f'action="{delete_url}"')
+        self.assertContains(anonymous_response, 'const CAN_EDIT = "false"')
+        self.assertContains(anonymous_response, 'const IS_SUPERUSER = "false"')
 
         regular_user = User.objects.create_user(
             username="regular_user",
@@ -199,8 +242,8 @@ class MainTest(TestCase):
         self.client.force_login(regular_user)
         regular_response = self.client.get(reverse("main:show_experience"))
         self.assertNotContains(regular_response, f'href="{create_url}"')
-        self.assertNotContains(regular_response, f'href="{update_url}"')
-        self.assertNotContains(regular_response, f'action="{delete_url}"')
+        self.assertContains(regular_response, 'const CAN_EDIT = "false"')
+        self.assertContains(regular_response, 'const IS_SUPERUSER = "false"')
 
         superuser = User.objects.create_superuser(
             username="portfolio_owner",
@@ -210,8 +253,8 @@ class MainTest(TestCase):
         self.client.force_login(superuser)
         owner_response = self.client.get(reverse("main:show_experience"))
         self.assertContains(owner_response, f'href="{create_url}"')
-        self.assertContains(owner_response, f'href="{update_url}"')
-        self.assertContains(owner_response, f'action="{delete_url}"')
+        self.assertContains(owner_response, 'const CAN_EDIT = "true"')
+        self.assertContains(owner_response, 'const IS_SUPERUSER = "true"')
 
     def test_create_experience_requires_superuser(self):
         create_url = reverse("main:create_experience")
@@ -802,10 +845,8 @@ class TugasFourTests(TestCase):
         )
         self.assertFalse(Experience.objects.filter(pk=self.experience.pk).exists())
 
-    def test_action_controls_match_each_role(self):
+    def test_renderer_controls_match_each_role(self):
         create_url = reverse("main:create_experience")
-        update_url = reverse("main:update_experience", args=[self.experience.pk])
-        delete_url = reverse("main:delete_experience", args=[self.experience.pk])
         for user, can_create, can_edit, can_delete in (
             (None, False, False, False),
             (self.regular, False, False, False),
@@ -820,8 +861,12 @@ class TugasFourTests(TestCase):
                     reverse("main:show_experience")
                 ).content.decode()
                 self.assertEqual(f'href="{create_url}"' in content, can_create)
-                self.assertEqual(f'href="{update_url}"' in content, can_edit)
-                self.assertEqual(f'action="{delete_url}"' in content, can_delete)
+                self.assertIn(
+                    f'const CAN_EDIT = "{str(can_edit).lower()}"', content
+                )
+                self.assertIn(
+                    f'const IS_SUPERUSER = "{str(can_delete).lower()}"', content
+                )
 
     def test_editor_cannot_manage_projects_but_can_star_them(self):
         self.client.force_login(self.editor)
@@ -845,9 +890,7 @@ class TugasFourTests(TestCase):
 
         self.assertRedirects(self.client.post(star_url), reverse("main:login"))
         anonymous_page = self.client.get(list_url)
-        self.assertContains(
-            anonymous_page, f'href="{reverse("main:login")}?next={list_url}"'
-        )
+        self.assertContains(anonymous_page, 'const IS_AUTHENTICATED = "false"')
         self.assertEqual(self.experience.starred_by.count(), 0)
 
         for count, user in enumerate((self.regular, self.editor, self.owner), 1):
@@ -859,14 +902,18 @@ class TugasFourTests(TestCase):
                 self.assertEqual(user.starred_experiences.count(), 1)
 
         self.client.force_login(self.regular)
-        starred_page = self.client.get(list_url)
-        self.assertContains(starred_page, "Unstar")
-        self.assertContains(starred_page, '<span class="star-count">3</span>')
+        starred_data = self.client.get(
+            reverse("main:get_experience_json")
+        ).json()[0]["fields"]
+        self.assertTrue(starred_data["is_starred"])
+        self.assertEqual(starred_data["star_count"], 3)
         self.assertRedirects(self.client.post(star_url), list_url)
         self.assertEqual(self.experience.starred_by.count(), 2)
-        unstarred_page = self.client.get(list_url)
-        self.assertNotContains(unstarred_page, "Unstar")
-        self.assertContains(unstarred_page, '<span class="star-count">2</span>')
+        unstarred_data = self.client.get(
+            reverse("main:get_experience_json")
+        ).json()[0]["fields"]
+        self.assertFalse(unstarred_data["is_starred"])
+        self.assertEqual(unstarred_data["star_count"], 2)
         self.assertRedirects(self.client.post(star_url), list_url)
         self.assertEqual(self.experience.starred_by.count(), 3)
         self.assertEqual(
@@ -1064,19 +1111,18 @@ class TugasFourTests(TestCase):
         )
 
         page = self.client.get(reverse("main:show_experience"), params)
-        self.assertEqual(
-            [experience.title for experience in page.context["experience_list"]],
-            expected,
-        )
+        self.assertNotContains(page, "Popular Teaching")
         self.assertContains(page, "Sort: Most Starred")
-        self.assertContains(page, '<span class="star-count">2</span>')
 
         self.client.force_login(self.regular)
         logged_in_page = self.client.get(
             reverse("main:show_experience"), params
         )
-        self.assertContains(logged_in_page, "Jumlah star: 2")
+        self.assertContains(logged_in_page, 'const IS_AUTHENTICATED = "true"')
         self.assertNotContains(logged_in_page, "Dibintangi oleh")
+        logged_in_items = self.client.get(api_url, params).json()
+        self.assertTrue(logged_in_items[0]["fields"]["is_starred"])
+        self.assertEqual(logged_in_items[0]["fields"]["star_count"], 2)
 
         filtered = self.client.get(
             api_url, {"category": "Teaching", "sort": "most-starred"}

@@ -85,5 +85,25 @@ class ExperienceForm(ModelForm):
             "tags",
         ]
 
+    def _clean_text(self, field):
+        value = strip_tags(self.cleaned_data[field]).strip()
+        if not value:
+            raise ValidationError("Field ini tidak boleh hanya berisi tag HTML.")
+        return value
+
+    def clean_title(self):
+        return self._clean_text("title")
+
+    def clean_company(self):
+        return self._clean_text("company")
+
+    def clean_period(self):
+        return self._clean_text("period")
+
+    def clean_description(self):
+        return self._clean_text("description")
+
+    def clean_tags(self):
+        return self._clean_text("tags")
                 
 

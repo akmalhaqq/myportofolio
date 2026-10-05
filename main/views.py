@@ -85,15 +85,14 @@ def get_experience_json(request):
 
 # show experience
 def show_experience(request):
-    experiences = _filtered_experiences(request)
-
     category_query = request.GET.get("category", "").strip()
+    search_query = request.GET.get("search", "").strip()
     sort_query = request.GET.get("sort", "").strip()
 
     context = {
         "name": "Muhammad Akmal Haqqani",
-        "experience_list": experiences,
         "category_query" : category_query,
+        "search_query": search_query,
         "sort_query" : sort_query,
     }
     return render(request, "experience.html", context)
