@@ -969,6 +969,43 @@ class TugasFourTests(TestCase):
             self.experience.starred_by.filter(pk=self.regular.pk).count(), 1
         )
 
+    def test_experience_star_ajax_returns_current_count_and_status(self):
+        star_url = reverse("main:toggle_experience_star", args=[self.experience.pk])
+        self.client.force_login(self.regular)
+
+        starred = self.client.post(star_url, HTTP_ACCEPT="application/json")
+        self.assertEqual(starred.status_code, 200)
+        self.assertEqual(starred.json(), {"star_count": 1, "is_starred": True})
+        self.assertTrue(self.experience.starred_by.filter(pk=self.regular.pk).exists())
+
+        unstarred = self.client.post(star_url, HTTP_ACCEPT="application/json")
+        self.assertEqual(unstarred.status_code, 200)
+        self.assertEqual(unstarred.json(), {"star_count": 0, "is_starred": False})
+        self.assertFalse(self.experience.starred_by.filter(pk=self.regular.pk).exists())
+
+    def test_experience_star_ajax_requires_login_and_csrf(self):
+        star_url = reverse("main:toggle_experience_star", args=[self.experience.pk])
+        self.assertRedirects(
+            self.client.post(star_url, HTTP_ACCEPT="application/json"),
+            reverse("main:login"),
+        )
+
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.regular)
+        self.assertEqual(
+            client.post(star_url, HTTP_ACCEPT="application/json").status_code,
+            403,
+        )
+        client.get(reverse("main:show_experience"))
+        token = client.cookies["csrftoken"].value
+        response = client.post(
+            star_url,
+            {"csrfmiddlewaretoken": token},
+            HTTP_ACCEPT="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"star_count": 1, "is_starred": True})
+
     def test_experience_mutations_require_csrf_token(self):
         client = Client(enforce_csrf_checks=True)
         client.force_login(self.regular)

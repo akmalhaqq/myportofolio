@@ -226,10 +226,17 @@ def delete_experience(request, experience_id):
 def toggle_experience_star(request, experience_id):
     experience = get_object_or_404(Experience, pk=experience_id)
 
-    if experience.starred_by.filter(pk=request.user.pk).exists():
+    is_starred = experience.starred_by.filter(pk=request.user.pk).exists()
+    if is_starred:
         experience.starred_by.remove(request.user)
     else:
         experience.starred_by.add(request.user)
+
+    if "application/json" in request.headers.get("Accept", ""):
+        return JsonResponse({
+            "star_count": experience.starred_by.count(),
+            "is_starred": not is_starred,
+        })
 
     return redirect("main:show_experience")
 
