@@ -967,6 +967,51 @@ class TugasFourTests(TestCase):
             ["Alpha Teaching", "Teaching Assistant"],
         )
 
+    def test_experience_json_searches_title_and_company_with_filter_and_sort(self):
+        mentor = Experience.objects.create(
+            order=2,
+            title="Lab Mentor",
+            company="Fasilkom UI",
+            period="2025",
+            category="Teaching",
+            description="Mentoring students.",
+            tags="Teaching",
+        )
+        Experience.objects.create(
+            order=3,
+            title="Internship Role",
+            company="Fasilkom UI",
+            period="2024",
+            category="Internship",
+            description="An internship.",
+            tags="Python",
+        )
+        mentor.starred_by.add(self.regular, self.editor)
+        self.experience.starred_by.add(self.regular)
+        api_url = reverse("main:get_experience_json")
+
+        by_title = self.client.get(api_url, {"search": "mentor"}).json()
+        self.assertEqual(
+            [item["fields"]["title"] for item in by_title], ["Lab Mentor"]
+        )
+
+        by_company = self.client.get(api_url, {"search": "FASILKOM"}).json()
+        self.assertEqual(
+            [item["fields"]["title"] for item in by_company],
+            ["Teaching Assistant", "Lab Mentor", "Internship Role"],
+        )
+
+        combined = self.client.get(api_url, {
+            "search": "  fasilkom  ",
+            "category": "Teaching",
+            "sort": "most-starred",
+        }).json()
+        self.assertEqual(
+            [item["fields"]["title"] for item in combined],
+            ["Lab Mentor", "Teaching Assistant"],
+        )
+        self.assertEqual(self.client.get(api_url, {"search": "unknown"}).json(), [])
+
     def test_experience_most_starred_sort_preserves_filter_and_tie_order(self):
         popular = Experience.objects.create(
             order=2,

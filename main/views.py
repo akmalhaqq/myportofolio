@@ -5,7 +5,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -36,6 +36,7 @@ def show_main(request):
 
 def _filtered_experiences(request):
     category_query = request.GET.get("category", "").strip()
+    search_query = request.GET.get("search", "").strip()
     sort_query = request.GET.get("sort", "").strip()
 
     experiences = Experience.objects.annotate(
@@ -43,6 +44,10 @@ def _filtered_experiences(request):
     ).prefetch_related("starred_by")
     if category_query:
         experiences = experiences.filter(category__iexact=category_query)
+    if search_query:
+        experiences = experiences.filter(
+            Q(title__icontains=search_query) | Q(company__icontains=search_query)
+        )
 
     if sort_query == "a-z":
         experiences = experiences.order_by("title")
@@ -50,7 +55,8 @@ def _filtered_experiences(request):
         experiences = experiences.order_by("-title")
     elif sort_query == "most-starred":
         experiences = experiences.order_by("-star_count", "order", "pk")
-    # default is by order
+    else:
+        experiences = experiences.order_by("order", "pk")
     return experiences
 
 # JSON
