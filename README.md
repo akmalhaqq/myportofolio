@@ -11,7 +11,7 @@ Isinya informasi pribadi, kemampuan teknis, pengalaman, proyek, dan kontak, semu
 
 ## Deskripsi
 
-Saya bikin project ini untuk latihan HTML5 dan CSS3 dalam membangun static website. lalu di Tugas 2 saya kembangkan lagi jadi aplikasi Django supaya data project-nya tidak lagi hardcoded di HTML, 
+Saya bikin project ini untuk latihan HTML5 dan CSS3 dalam membangun static website. lalu di Tugas 2 saya kembangkan lagi jadi aplikasi Django supaya data project-nya tidak lagi hardcoded di HTML,
 disini saya fokus ngembangin di struktur halaman yang rapi dan layout yang tetap enak dilihat baik di desktop maupun di HP.
 Tidak pakai frontend framework. Struktur halaman full HTML5, layout dan responsivitasnya diatur lewat CSS3.
 
@@ -132,6 +132,7 @@ Saya uji responsive behavior-nya di beberapa ukuran viewport, cek apakah konten 
 Di layar kecil, beberapa layout multi-kolom saya ubah jadi satu kolom, dan beberapa komponen saya sesuaikan lagi supaya tetap enak dipandang.
 
 # Pertanyaan Reflektif
+
 ## TUGAS 1
 
 ## 1. Penggunaan Semantic HTML5
@@ -164,59 +165,60 @@ Ke depannya saya ingin menambahkan bagian backend dan database (setidaknya itu p
 Saya juga ingin menambahkan bagian project dan contact form yang bisa menerima pesan dari pengunjung (harapannya sih tawaran internship, hehehe), lalu diproses lewat backend. Dengan begitu website-nya bisa lebih interaktif dan datanya bisa diolah.
 
 # Pertanyaan Reflektif
+
 ## TUGAS 2
 
 ## 1. Alur dari Request sampai Data Tampil di Browser
 
 Ketika saya buka halaman Projects, browser saya mengirim HTTP request ke URL `/projects/`. Request ini pertama diproses lewat `portofolio/urls.py`, URL dispatcher utama project yang mencocokkan URL request dengan pattern yang tersedia. Untuk URL yang jadi tanggung jawab app `main`, routing-nya saya teruskan lewat `include()` ke `main/urls.py`.
- 
+
 Di `main/urls.py`, Django mencocokkan lagi URL `/projects/` ke pattern yang saya definisikan, lalu diarahkan ke view `show_projects` di `main/views.py`. Saya kasih nama route ini `show_projects` juga, jadi di template saya bisa panggil pakai `{% url 'main:show_projects' %}` tanpa hardcode URL.
- 
+
 Di dalam `show_projects`, saya ambil data project lewat `Project.objects.all()`. `Project` adalah model yang saya definisikan di `main/models.py`, dan `objects` adalah manager bawaan Django untuk berinteraksi dengan model lewat Django ORM. Query ini menghasilkan QuerySet yang merepresentasikan data project dari database.
- 
+
 Data itu saya masukkan ke context dengan nama `project_list`, lalu saya kirim ke template `projects.html` pakai `render()`. Django Template Engine yang memproses template ini bersama context-nya. Saya loop pakai `{% for project in project_list %}` supaya tiap object `Project` ditampilkan pakai struktur HTML yang sama, judul, kategori, deskripsi, tech stack, achievement, tahun, dan link, semua saya ambil dari atribut object-nya langsung. Saya juga tambahkan `{% empty %}` untuk kondisi kalau belum ada project di database, jadi halaman tetap kasih informasi ke pengguna.
- 
+
 Setelah template selesai diproses, Django menghasilkan HTML yang sudah dirender dan mengembalikannya sebagai HTTP response ke browser. Browser yang mengurus render HTML itu bersama CSS dan aset lain yang dibutuhkan, sampai halaman Projects tampil ke pengguna.
- 
+
 Kalau saya ringkas prosesnya akan dimulai dari `urls.py` menangani routing request, view menangani proses request dan menyiapkan data, model merepresentasikan struktur data yang berinteraksi dengan database lewat ORM, template mengatur cara data itu dipresentasikan ke pengguna.
 
 ## 2. Kenapa Data Project Disimpan di Model, Bukan Ditulis Langsung di Template
 
 kenapa kita simpan data project di model itu karena model dan template punya responsibility yang berbeda. Model dipakai untuk mendefinisikan struktur data aplikasi dan template dipakai untuk menentukan cara data itu ditampilkan ke pengguna.
- 
+
 Di Tugas 2 ini, saya definisikan model `Project` di `main/models.py` dengan field `title`, `category`, `description`, `tech_stack`, `achievement`, `github_url`, `external_url`, `year`, dan `image`. Data dari model ini disimpan di database. Template `projects.html` sendiri tidak menyimpan informasi tiap project secara langsung, dia hanya menerima data dari view lewat context dan menampilkannya pakai template syntax(ini contoh sedikit saja untuk gambaran yaa):
- 
+
 ```django
 {% for project in project_list %}
     {{ project.title }}
     {{ project.description }}
 {% endfor %}
 ```
- 
+
 Dengan struktur seperti ini, jumlah project yang ditampilkan bisa bertambah tanpa saya perlu bikin elemen HTML baru satu-satu. Kalau saya tambah project baru lewat database atau Django Admin, data itu langsung terpakai struktur template yang sama.
- 
+
 Sebaliknya, kalau semua informasi project saya tulis langsung di template, tiap kali menambah atau mengubah project saya harus ubah HTML secara manual. Data dan presentation-nya jadi tercampur, dan makin susah dikelola begitu jumlah project bertambah.
- 
+
 Pemisahan ini juga bikin data `Project` bisa saya pakai lagi untuk fitur lain nanti, misalnya halaman detail project, pencarian, filter kategori, urut berdasarkan tahun, atau saya kelola lewat Django Admin, tanpa perlu ubah struktur dasar template tiap kali datanya berubah.
- 
+
 jadi kita menyimpan data di model itu untuk memisahkan tanggung jawab data dan tampilan, sementara template-nya sendiri jadi reusable karena satu struktur HTML bisa dipakai untuk banyak object `Project`.
 
 ## 3. Beda `makemigrations` dan `migrate`
 
 `makemigrations` dan `migrate` adalah dua perintah Django yang berkaitan dengan perubahan struktur database, dan ada perbedaan dalam fungsinya.
- 
+
 `makemigrations` saya pakai untuk membuat migration file berdasarkan perubahan yang saya lakukan di `models.py`. Django mendeteksi perubahan itu dan menghasilkan instruksi perubahan schema database dalam bentuk migration. Di tahap ini, struktur database saya belum berubah.
- 
+
 Setelah migration dibuat, saya jalankan `migrate`. Perintah ini yang menerapkan migration yang tersedia ke database, jadi perubahan struktur yang didefinisikan di migration benar-benar dieksekusi ke database.
- 
+
 Contoh nya jika kitalihat di Tugas 2 ketika waktu saya bikin model `Project`, saya jalankan `python manage.py makemigrations`. Django membuat migration yang berisi operasi untuk membangun struktur yang dibutuhkan model `Project`. Setelah itu saya jalankan `python manage.py migrate`, baru perubahan itu diterapkan ke database dan tabel untuk model `Project` bisa dipakai aplikasi.
- 
+
 Hal yang sama berlaku waktu saya menambahkan field `image` ke model `Project`. Perubahan di `models.py` itu harus saya buat jadi migration dulu lewat `makemigrations`, baru saya terapkan ke database lewat `migrate`.
- 
+
 Pemisahan dua proses ini membuat perubahan schema database tercatat sebagai migration yang terstruktur dan bisa diterapkan secara konsisten, jadi perubahan model di aplikasi saya tetap terkontrol.
 
-
 # Pertanyaan Reflektif
+
 ## TUGAS 3
 
 ## 1. Kenapa Pakai 'ModelForm', bukan Form HTML Manual
@@ -241,9 +243,38 @@ Setelah datanya diserialize, saya mengembalikannya lewat `HttpResponse` dengan `
 
 Serialization ini diperlukan karena object hasil query Django belum berbentuk data JSON yang bisa langsung dikirim sebagai response. Object Django perlu diterjemahkan terlebih dahulu menjadi representasi data yang terdiri dari struktur JSON seperti object, array, string, dan number. Setelah proses tersebut selesai, hasilnya dapat dikirim melalui HTTP sebagai JSON dan digunakan oleh client yang membutuhkannya.
 
+# Pertanyaan Reflektif
+
+## TUGAS 5
+
+## 1. Apa Itu Debouncing dan Kenapa Penting untuk Pencarian AJAX?
+
+_Debouncing_ adalah teknik untuk menunda pencarian sampai pengguna berhenti mengetik selama beberapa saat. Di halaman Experience, saya memakai jeda 300 milidetik. Setiap kali ada huruf baru yang diketik, hitungan waktunya dimulai lagi. Jadi, kalau pengguna mengetik “Teaching” dengan cepat, pencarian baru dilakukan setelah ia berhenti mengetik.
+
+Teknik ini penting karena pencarian AJAX mengirim permintaan ke server tanpa me-_reload_ halaman. Tanpa _debouncing_, setiap huruf yang diketik bisa memicu permintaan baru. Server akan melakukan pencarian berulang kali, padahal pengguna mungkin belum selesai mengetik. Dengan _debouncing_, pencarian tetap terasa cepat, tetapi permintaan yang dikirim lebih sedikit.
+
+Di proyek saya, permintaan yang sudah berjalan juga dibatalkan ketika pencarian baru dimulai. _Debouncing_ mengurangi permintaan sebelum dikirim, sedangkan pembatalan ini mencegah hasil pencarian lama menimpa hasil yang lebih baru.
+
+## 2. Apa Fungsi `await` Saat Menggunakan `fetch()`? Apa yang Terjadi Jika Tidak Digunakan?
+
+`fetch()` mengembalikan sebuah _Promise_ karena respons dari server tidak langsung tersedia. Saya memakai `await fetch(url)` agar kode menunggu respons sebelum memeriksa apakah permintaannya berhasil. Saya juga memakai `await response.json()` agar isi respons selesai dibaca dan diubah menjadi data JavaScript sebelum digunakan.
+
+Di halaman Experience, data diambil terlebih dahulu, status respons diperiksa, lalu daftar Experience ditampilkan. Pemakaian `await` tidak membuat seluruh halaman berhenti. Pengguna tetap bisa berinteraksi dengan halaman selama permintaan berlangsung.
+
+Kalau `await` dihilangkan begitu saja, variabel yang seharusnya berisi respons atau daftar Experience masih berisi _Promise_. Akibatnya, kode seperti pemeriksaan `response.ok` atau perulangan pada daftar Experience tidak akan bekerja sesuai harapan. Kita bisa memakai `.then()` sebagai alternatif, tetapi hasil dari _Promise_ tetap harus ditunggu sebelum digunakan.
+
+## 3. Apa Itu Serangan XSS dan Kenapa Data dari AJAX Lebih Rentan?
+
+XSS (_Cross-Site Scripting_) adalah serangan ketika seseorang memasukkan kode berbahaya ke dalam data, lalu kode tersebut dijalankan oleh browser pengguna lain saat datanya ditampilkan. Misalnya, seseorang mengisi judul Experience dengan HTML yang memuat perintah JavaScript. Jika judul itu langsung dimasukkan sebagai HTML, browser dapat menjalankan perintah tersebut.
+
+Saat data ditampilkan melalui template Django menggunakan `{{ value }}`, Django secara bawaan melakukan _escaping_. Karakter seperti `<` dan `>` diubah agar ditampilkan sebagai teks biasa. Namun, data yang diambil melalui AJAX disusun kembali menjadi tampilan oleh JavaScript. Jika saya memasukkan data itu langsung ke `innerHTML`, perlindungan otomatis dari template Django tidak ikut berlaku. Masalahnya ada pada cara data dimasukkan ke halaman, bukan pada format JSON-nya.
+
+Form di sisi server juga memakai `strip_tags` untuk menghapus tag HTML dari input teks. Namun, `strip_tags` saja tidak menjamin data aman dari XSS. Karena itu, saya tetap melakukan _escaping_ saat menampilkan data melalui JavaScript, termasuk untuk data lama atau data yang masuk melalui jalur lain. Dengan begitu, teks yang menyerupai HTML ditampilkan sebagai teks biasa, bukan diproses sebagai kode.
+
 # AI Disclosure
 
 ## TUGAS 1
+
 ## Penggunaan AI
 
 Saya pakai ChatGPT sebagai AI assistant selama pengerjaan project ini, terutama untuk brainstorming, debugging, dan mengevaluasi implementasi HTML dan CSS dari video YouTube yang jadi inspirasi website ini.
@@ -301,12 +332,13 @@ Project ini mengajarkan saya membangun static website dengan HTML5 dan CSS3, mul
 Di luar sisi teknis, project ini juga jadi pengalaman saya memakai AI secara kritis. Terjun langsung membuat saya sadar: output AI perlu saya pahami, uji, dan sesuaikan dulu sebelum dipakai. Keputusan akhir soal cara mengintegrasikan kode itu tetap ada di tangan developer, supaya hasilnya konsisten dan tidak terasa seperti web yang "slop".
 
 ## Tugas 2
+
 ## Penggunaan AI
 
 Untuk Tugas 2, saya pakai ChatGPT di dua konteks berbeda. Pertama waktu saya bingung soal positioning CSS untuk bagian Projects, foto-nya kelihatan terlalu maju padahal urutan elemennya sudah benar. Kedua waktu saya mengerjakan bagian Django-nya sendiri: bikin model `Project`, view, test, sampai brainstorming fitur tambahan supaya bisa naik ke nilai 4.0.
 
 Beberapa hal yang dibantu ChatGPT:
- 
+
 - Menjelaskan konsep `z-index`, `position: relative` vs `position: absolute`, dan CSS Grid dengan analogi sederhana, karena sebelumnya saya cuma ikut-ikutan video YouTube tanpa benar-benar paham logikanya.
 - Membaca model `Project` yang sudah saya buat dan membantu saya memahami struktur kode saya sendiri.
 - Membimbing saya menulis unit test untuk `Project`, dengan cara membandingkan ke test `Experience` yang sudah saya buat duluan.
@@ -317,23 +349,23 @@ Beberapa hal yang dibantu ChatGPT:
 ## Pendekatan Penggunaan AI
 
 Saya pakai pendekatan yang sama seperti Tugas 1, iterative prompting, tapi kali ini saya eksplisit minta di awal supaya ChatGPT tidak langsung kasih kode jadi. jadi saya minta dia analisis file yang sudah saya kembangkan, pahami strukturnya dulu, terus bantu saya "develop".
- 
+
 Untuk bagian CSS, saya jelaskan gejala yang saya lihat (foto kedepan padahal indexing oke), lalu saya tanya konsep di baliknya satu-satu sampai saya paham analoginya.
- 
+
 Untuk bagian testing, saya awalnya agak bingung, jadi saya kasih tahu ChatGPT saya sudah punya test untuk `Experience` dari tugas 1 dan saya mau bikin yang mirip tapi disesuaikan ke field model `Project`. Setelah saya coba sendiri dan selesai, saya baru tanya cara menjalankannya.
- 
+
 ## Keterbatasan AI yang Ditemukan
 
 Penjelasan pertama ChatGPT soal z-index dan positioning masih terlalu teknis buat saya, saya sampai minta diulang pakai bahasa yang lebih sederhana. Ini nunjukin AI tidak otomatis tahu level pemahaman saya di awal, saya yang harus aktif bilang kalau penjelasannya belum cukup jelas.
- 
+
 Untuk bagian nilai 4.0, saran pertama ChatGPT (fitur tambah project) menurut saya sendiri masih terasa seperti fitur dasar yang seharusnya memang ada, bukan sesuatu yang kreatif. Saya yang mempertanyakan itu balik ke ChatGPT sebelum akhirnya kami sama-sama sampai ke ide Django Admin sebagai fitur ekstra yang lebih pantas disebut "melampaui ekspektasi".
- 
+
 Sama seperti Tugas 1, ChatGPT juga tidak bisa memastikan hasil test saya benar-benar cover semua kondisi yang dibutuhkan rubrik. Saya tetap yang menjalankan `python manage.py test` sendiri dan memastikan semuanya lulus, mungkin jika dalam penggunaaan agentic AI itu akan bisa run sedniri, namun dalam LLM nampaknhya belum punya kapabilitas untuk eksekusi langsung.
 
 ## Perbaikan Manual
 
 Setelah diskusi dengan ChatGPT, saya sendiri yang:
- 
+
 - Menulis model `Project` dengan field dan tipe data sesuai kebutuhan saya (termasuk `UUIDField` sebagai primary key dan method `tech_list()` untuk parsing `tech_stack`).
 - Menulis dan menyesuaikan unit test untuk `Project` berdasarkan pola test `Experience`, disesuaikan ke tiga kasus wajib: URL bisa diakses dengan template yang benar, data project muncul saat ada data, dan pesan kondisi kosong muncul saat belum ada data.
 - Menjalankan `makemigrations` dan `migrate` sendiri, lalu mengecek hasilnya di database.
@@ -343,7 +375,7 @@ Setelah diskusi dengan ChatGPT, saya sendiri yang:
 ## Evaluasi Penggunaan AI
 
 Untuk Tugas 2, ChatGPT paling membantu di menjelaskan konsep CSS yang selama ini saya pakai tanpa saya pahami betul, dan jadi lawan diskusi waktu saya mikirin fitur tambahan yang benar-benar bernilai lebih, bukan sekadar checklist.
- 
+
 Yang saya pelajari, AI bisa kasih ide awal, tapi keputusan mana ide yang layak tetap ada di saya. Waktu saya merasa saran pertamanya masih terlalu basic, saya tidak langsung terima, saya tanya balik dan diskusikan lagi sampai ketemu solusi yang saya rasa memang pantas.
 
 ## Log Prompting
@@ -352,12 +384,13 @@ Log percakapan lengkap dengan ChatGPT untuk Tugas 2 (CSS positioning, pengembang
 Link Chat GPT: https://chatgpt.com/share/6aa6ae4d-2a44-83ec-881f-c6a06e21935a
 
 ## Kesimpulan
- 
+
 Tugas 1 kita fokus pada HTML5 dan CSS3, dengan membangun struktur dan membangun layout pakai Grid dan Flexbox, sampai menerapkan responsive design dan animasi lewat CSS. Tugas 2 melanjutkannya dengan mengubah bagian Projects dari data statis di HTML jadi data dinamis lewat model, view, dan template Django, lengkap dengan unit test dan Django Admin.
 
-
 # AI Disclosure
+
 ## Tugas 3
+
 ## Penggunaan AI
 
 Untuk Tugas 3, saya pakai ChatGPT terutama untuk memahami alur kerja Django secara menyeluruh (yang tadinya masih saya "kureng paham" dari awal) dan brainstorming fitur tambahan supaya bisa mengejar nilai 4.0.
@@ -412,12 +445,13 @@ Log percakapan lengkap dengan ChatGPT untuk Tugas 3 (pemahaman requirement, alur
 Link Chat GPT: https://chatgpt.com/share/6aac2250-7ac0-83ec-a4d2-f4f56bb106df
 
 ## Kesimpulan
- 
+
 Tugas 1 kita fokus pada HTML5 dan CSS3, dengan membangun struktur dan membangun layout pakai Grid dan Flexbox, sampai menerapkan responsive design dan animasi lewat CSS. Tugas 2 melanjutkannya dengan mengubah bagian Projects dari data statis di HTML jadi data dinamis lewat model, view, dan template Django, lengkap dengan unit test dan Django Admin. Tugas 3 saya lanjutkan lagi dengan menambahkan CRUD penuh (create, update, delete) untuk Experience, endpoint JSON, fitur filter kategori dan sorting, serta refactor template supaya seluruh halaman extend dari satu root template lewat template inheritance.
 
-
 # AI Disclosure
+
 ## Tugas 4
+
 ## Penggunaan AI
 
 Untuk Tugas 4, saya pakai ChatGPT sebagai teman belajar dan review selama menerapkan authentication dan authorization pada Experience. Saya juga minta bantuan untuk membaca requirement, memahami alur session dan cookie, meninjau keamanan API JSON, menyusun test case, serta membahas pengaturan role Editor di lokal dan PWS. ChatGPT ikut membantu perubahan kode dan test, tetapi keputusan fitur dan pengecekan hasilnya tetap saya lakukan berdasarkan kondisi project saya.
@@ -463,3 +497,32 @@ Link Chat GPT: [Percakapan AI Tugas 4](https://chatgpt.com/share/6ab9fd15-6884-8
 ## Kesimpulan
 
 Tugas 4 melanjutkan fitur Experience dengan pembatasan hak akses sesuai peran dan fitur Star untuk pengguna yang login. Dari penggunaan AI kali ini, saya belajar bahwa implementasi yang terlihat berhasil masih perlu diperiksa dari sisi permission dan privasi data. AI membantu menjelaskan dan meninjau, tetapi saya tetap harus memahami keputusan yang diambil, menguji hasilnya, serta mengecek ulang konfigurasi lokal dan deployment.
+
+# AI Disclosure
+
+## Tugas 5
+
+## Penggunaan AI
+
+Untuk Tugas 5, saya pakai ChatGPT sebagai teman diskusi selama mengembangkan fitur AJAX pada halaman Experience. AI membantu saya membaca requirement, melihat kondisi kode yang sudah ada, brainstorming langkah pengerjaan, dan menyusun test case untuk fitur yang ditambahkan.
+
+Saya juga meminta AI membantu menjelaskan lebih detail terkait dengan _debouncing_, filter tanpa _reload_, form tambah lewat modal, pembaruan Star, dan perlindungan XSS. Setelah dijelaskan dan saya coba aplikasikan, saya minta AI meninjau lagi apakah hasilnya sudah sesuai dengan requirement tugas.
+
+## Pendekatan Penggunaan AI
+
+Saya memakai _iterative prompting_. Saya mulai dengan meminta AI membandingkan PDF tugas dengan kondisi project saya, lalu membagi pekerjaan menjadi beberapa perubahan yang bisa saya periksa satu per satu. Ketika ada bagian yang membuat saya bingung, saya langsung tanyakan lagi dan mencocokkan penjelasannya dengan kode yang sudah dibuat sebelum lanjut ke bagian berikutnya.
+
+Saya juga meminta AI menjelaskan alasan kenapa kita harus A,b, atau c, Dengan begitu, saya bisa mengevaluasi apakah alur AJAX, hak akses, dan test case yang dibuat memang cocok untuk halaman Experience saya.
+
+## Keterbatasan AI yang Ditemukan
+
+Jawaban AI tidak selalu langsung cocok dengan cara saya menjelaskan sesuatu di README. Bagian awal misalnya, AI sering lupa context dan terbatas dengan memorinya,
+Dari situ saya sadar kalau penjelasan AI tetap perlu saya pertanyakan dan cocokkan dengan kode gabisa langsung terima karena ditakutkan AI terseebut sedang halusinasi mengingat context window terbatas. Test case yang disusun AI juga perlu dilihat apakah benar-benar memeriksa perilaku yang diminta tugas, bukan hanya membuat test terlihat lulus.
+
+## Evaluasi Penggunaan AI
+
+AI paling membantu ketika saya perlu memecah requirement yang panjang menjadi langkah pengerjaan, mencari solusi saat ada bagian yang membingungkan, dan menyiapkan test case untuk mengecek hasil implementasi. Proses dari pertanyaan lalu memeriksa kode membuat saya lebih paham hubungan antara endpoint JSON, JavaScript di halaman Experience, dan keamanan data yang ditampilkan.
+
+## Kesimpulan
+
+Pada Tugas 5, saya menggunakan AI lewat diskusi yang berulang, dari memahami requirement sampai mengevaluasi kode. AI membantu brainstorming, implementasi, dan penyusunan test case.
