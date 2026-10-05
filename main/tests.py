@@ -231,7 +231,8 @@ class MainTest(TestCase):
         create_url = reverse("main:create_experience")
 
         anonymous_response = self.client.get(reverse("main:show_experience"))
-        self.assertNotContains(anonymous_response, f'href="{create_url}"')
+        self.assertNotContains(anonymous_response, 'popovertarget="add-experience-modal"')
+        self.assertNotContains(anonymous_response, 'id="experience-form"')
         self.assertContains(anonymous_response, 'const CAN_EDIT = "false"')
         self.assertContains(anonymous_response, 'const IS_SUPERUSER = "false"')
 
@@ -241,7 +242,8 @@ class MainTest(TestCase):
         )
         self.client.force_login(regular_user)
         regular_response = self.client.get(reverse("main:show_experience"))
-        self.assertNotContains(regular_response, f'href="{create_url}"')
+        self.assertNotContains(regular_response, 'popovertarget="add-experience-modal"')
+        self.assertNotContains(regular_response, 'id="experience-form"')
         self.assertContains(regular_response, 'const CAN_EDIT = "false"')
         self.assertContains(regular_response, 'const IS_SUPERUSER = "false"')
 
@@ -252,7 +254,9 @@ class MainTest(TestCase):
         )
         self.client.force_login(superuser)
         owner_response = self.client.get(reverse("main:show_experience"))
-        self.assertContains(owner_response, f'href="{create_url}"')
+        self.assertContains(owner_response, 'popovertarget="add-experience-modal"')
+        self.assertContains(owner_response, 'id="experience-form"')
+        self.assertContains(owner_response, f'action="{create_url}"')
         self.assertContains(owner_response, 'const CAN_EDIT = "true"')
         self.assertContains(owner_response, 'const IS_SUPERUSER = "true"')
 
@@ -845,8 +849,49 @@ class TugasFourTests(TestCase):
         )
         self.assertFalse(Experience.objects.filter(pk=self.experience.pk).exists())
 
+    def test_create_experience_ajax_enforces_role_method_and_validation(self):
+        url = reverse("main:create_experience_ajax")
+        self.assertEqual(self.client.get(url).status_code, 405)
+        for user in (None, self.regular, self.editor):
+            with self.subTest(user=user.username if user else "anonymous"):
+                self.client.logout()
+                if user:
+                    self.client.force_login(user)
+                response = self.client.post(url, self.experience_data("Denied"))
+                self.assertEqual(response.status_code, 403)
+                self.assertIn("message", response.json())
+        self.assertEqual(Experience.objects.count(), 1)
+
+        self.client.force_login(self.owner)
+        invalid = self.client.post(
+            url, self.experience_data('<img src="x" onerror="alert(1)">')
+        )
+        self.assertEqual(invalid.status_code, 400)
+        self.assertIn("title", invalid.json()["errors"])
+        self.assertEqual(Experience.objects.count(), 1)
+
+        valid = self.client.post(url, self.experience_data("<b>New Experience</b>"))
+        self.assertEqual(valid.status_code, 201)
+        created = Experience.objects.get(pk=valid.json()["pk"])
+        self.assertEqual(created.title, "New Experience")
+        self.assertEqual(created.order, 2)
+        self.assertEqual(Experience.objects.count(), 2)
+
+    def test_create_experience_ajax_requires_csrf_token(self):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.owner)
+        url = reverse("main:create_experience_ajax")
+        data = self.experience_data("Created with CSRF")
+
+        self.assertEqual(client.post(url, data).status_code, 403)
+        self.assertEqual(Experience.objects.count(), 1)
+        client.get(reverse("main:show_experience"))
+        token = client.cookies["csrftoken"].value
+        response = client.post(url, {**data, "csrfmiddlewaretoken": token})
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(Experience.objects.filter(title="Created with CSRF").exists())
+
     def test_renderer_controls_match_each_role(self):
-        create_url = reverse("main:create_experience")
         for user, can_create, can_edit, can_delete in (
             (None, False, False, False),
             (self.regular, False, False, False),
@@ -860,7 +905,11 @@ class TugasFourTests(TestCase):
                 content = self.client.get(
                     reverse("main:show_experience")
                 ).content.decode()
-                self.assertEqual(f'href="{create_url}"' in content, can_create)
+                self.assertEqual('id="experience-form"' in content, can_create)
+                self.assertEqual(
+                    'popovertarget="add-experience-modal"' in content,
+                    can_create,
+                )
                 self.assertIn(
                     f'const CAN_EDIT = "{str(can_edit).lower()}"', content
                 )

@@ -29,12 +29,13 @@
               </p>
             </div>
             {% if user.is_superuser %}
-              <a
-                href="{% url 'main:create_experience' %}"
+              <button
+                type="button"
                 class="button"
+                popovertarget="add-experience-modal"
               >
                 + Tambah Experience
-              </a>
+              </button>
             {% endif %}
           </div>
         <div class="experience-filter">
@@ -43,7 +44,7 @@
             
             <details class="sort-dropdown">
               <summary class="sort-dropdown__summary">
-                Sort: {% if sort_query == 'a-z' %}A - Z{% elif sort_query == 'z-a' %}Z - A{% elif sort_query == 'most-starred' %}Most Starred{% else %}Terbaru{% endif %}
+                <span id="experience-sort-label">Sort: {% if sort_query == 'a-z' %}A - Z{% elif sort_query == 'z-a' %}Z - A{% elif sort_query == 'most-starred' %}Most Starred{% else %}Terbaru{% endif %}</span>
                 <i class="ri-arrow-down-s-line"></i>
               </summary>
               <div class="sort-dropdown__menu">
@@ -139,8 +140,12 @@
         </div>
       </section>
     </main>
+    {% if user.is_superuser %}
+      {% include "components/experience_form_modal.html" %}
+    {% endif %}
     <script>
       const EXPERIENCE_ENDPOINT = "{% url 'main:get_experience_json' %}";
+      const CREATE_EXPERIENCE_ENDPOINT = "{% url 'main:create_experience_ajax' %}";
       const EXPERIENCE_PAGE_URL = "{% url 'main:show_experience' %}";
       const LOGIN_URL = "{% url 'main:login' %}";
       const STAR_URL_TEMPLATE = "{% url 'main:toggle_experience_star' '00000000-0000-0000-0000-000000000000' %}";
@@ -159,6 +164,10 @@
       const searchForm = document.getElementById("experience-search-form");
       const searchInput = document.getElementById("experience-search-input");
       const categoryList = document.querySelector(".experience-filter__list");
+      const sortDropdown = document.querySelector(".sort-dropdown");
+      const sortMenu = document.querySelector(".sort-dropdown__menu");
+      const sortLabel = document.getElementById("experience-sort-label");
+      const experienceForm = document.getElementById("experience-form");
       const SEARCH_DEBOUNCE_DELAY = 300;
       let searchDebounceTimer;
       let experienceAbortController;
@@ -309,36 +318,64 @@
         fetchExperiences(searchInput.value.trim());
       }
 
-      function updateCategorySelection() {
-        const selectedCategory = new URLSearchParams(window.location.search).get("category") || "";
+      function updateFilterSelection() {
+        const params = new URLSearchParams(window.location.search);
+        const selectedCategory = params.get("category") || "";
+        const selectedSort = params.get("sort") || "";
         categoryList.querySelectorAll("a.experience-filter__item").forEach((link) => {
           const category = new URL(link.href).searchParams.get("category") || "";
           link.classList.toggle("active", category === selectedCategory);
         });
+        sortMenu.querySelectorAll("a").forEach((link) => {
+          const sort = new URL(link.href).searchParams.get("sort") || "";
+          link.classList.toggle("active", sort === selectedSort);
+        });
+        const sortNames = {
+          "a-z": "A - Z",
+          "z-a": "Z - A",
+          "most-starred": "Most Starred",
+        };
+        sortLabel.textContent = `Sort: ${sortNames[selectedSort] || "Terbaru"}`;
       }
 
-      categoryList.addEventListener("click", function (event) {
-        const link = event.target.closest("a.experience-filter__item");
-        if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-        event.preventDefault();
+      function applyFilter(name, value) {
         clearTimeout(searchDebounceTimer);
-        const category = new URL(link.href).searchParams.get("category") || "";
         const url = new URL(window.location.href);
-        if (category) url.searchParams.set("category", category);
-        else url.searchParams.delete("category");
+        if (value) url.searchParams.set(name, value);
+        else url.searchParams.delete(name);
         const searchQuery = searchInput.value.trim();
         if (searchQuery) url.searchParams.set("search", searchQuery);
         else url.searchParams.delete("search");
         window.history.pushState(null, "", url);
-        updateCategorySelection();
+        updateFilterSelection();
         fetchExperiences(searchQuery);
+      }
+
+      function isPlainClick(event) {
+        return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+      }
+
+      categoryList.addEventListener("click", function (event) {
+        const link = event.target.closest("a.experience-filter__item");
+        if (!link || !isPlainClick(event)) return;
+        event.preventDefault();
+        const category = new URL(link.href).searchParams.get("category") || "";
+        applyFilter("category", category);
+      });
+
+      sortMenu.addEventListener("click", function (event) {
+        const link = event.target.closest("a");
+        if (!link || !isPlainClick(event)) return;
+        event.preventDefault();
+        const sort = new URL(link.href).searchParams.get("sort") || "";
+        sortDropdown.open = false;
+        applyFilter("sort", sort);
       });
 
       window.addEventListener("popstate", function () {
         clearTimeout(searchDebounceTimer);
         searchInput.value = new URLSearchParams(window.location.search).get("search") || "";
-        updateCategorySelection();
+        updateFilterSelection();
         fetchExperiences(searchInput.value.trim());
       });
 
@@ -351,6 +388,40 @@
         clearTimeout(searchDebounceTimer);
         searchExperiences();
       });
+
+      if (experienceForm) {
+        experienceForm.addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const submitButton = experienceForm.querySelector('button[type="submit"]');
+          submitButton.disabled = true;
+
+          try {
+            const response = await fetch(CREATE_EXPERIENCE_ENDPOINT, {
+              method: "POST",
+              headers: { Accept: "application/json" },
+              body: new FormData(experienceForm),
+            });
+            const result = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+              experienceForm.reset();
+              document.getElementById("add-experience-modal").hidePopover();
+              showToast("Berhasil", result.message || "Experience berhasil ditambahkan.", "success");
+              fetchExperiences(searchInput.value.trim());
+            } else {
+              const errorMessages = result.errors
+                ? Object.values(result.errors).flat().map((error) => error.message)
+                : [result.message || `Terjadi kesalahan (status ${response.status}).`];
+              showToast("Gagal menambahkan Experience", errorMessages.join("\n"), "error");
+            }
+          } catch (error) {
+            console.error("Error adding Experience:", error);
+            showToast("Gagal menambahkan Experience", "Tidak dapat terhubung ke server. Silakan coba lagi.", "error");
+          } finally {
+            submitButton.disabled = false;
+          }
+        });
+      }
 
       fetchExperiences(searchInput.value.trim());
     </script>

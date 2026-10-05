@@ -95,6 +95,8 @@ def show_experience(request):
         "search_query": search_query,
         "sort_query" : sort_query,
     }
+    if request.user.is_superuser:
+        context["form"] = ExperienceForm()
     return render(request, "experience.html", context)
 
 # create experience 
@@ -136,6 +138,28 @@ def create_experience(request):
         "experience_form.html",
         context
     )
+
+
+@require_POST
+def create_experience_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan pengalaman."},
+            status=403,
+        )
+
+    form = ExperienceForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+
+    last_experience = Experience.objects.order_by("-order").first()
+    form.instance.order = last_experience.order + 1 if last_experience else 1
+    experience = form.save()
+    return JsonResponse(
+        {"message": "Experience berhasil ditambahkan.", "pk": str(experience.pk)},
+        status=201,
+    )
+
 # Update experience
 @login_required(login_url="/login/")
 def update_experience(request, experience_id):
