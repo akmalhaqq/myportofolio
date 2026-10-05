@@ -170,6 +170,13 @@ class MainTest(TestCase):
         self.assertContains(response, "Teaching")
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
 
+    def test_experience_page_does_not_depend_on_json_view(self):
+        with patch("main.views.get_experience_json", side_effect=AssertionError):
+            response = self.client.get(reverse("main:show_experience"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.experience.title)
+
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
         response = self.client.get(reverse("main:show_experience"))
@@ -894,7 +901,7 @@ class TugasFourTests(TestCase):
         self.assertEqual(self.experience.title, "Teaching Assistant")
         self.assertEqual(Experience.objects.count(), 1)
 
-    def test_experience_json_is_public_and_only_exposes_star_count(self):
+    def test_experience_json_is_public_and_exposes_star_state_without_usernames(self):
         self.experience.starred_by.add(self.regular)
         Experience.objects.create(
             order=2,
@@ -922,11 +929,32 @@ class TugasFourTests(TestCase):
             item for item in response.json()
             if item["pk"] == str(self.experience.pk)
         )
+        self.assertEqual(item["model"], "main.experience")
+        self.assertEqual(item["fields"]["title"], self.experience.title)
         self.assertEqual(item["fields"]["star_count"], 1)
+        self.assertFalse(item["fields"]["is_starred"])
         self.assertNotIn("starred_by", item["fields"])
         self.assertNotIn("regular", response.content.decode())
         self.assertNotIn("private@example.test", response.content.decode())
         self.assertNotIn("password", response.content.decode())
+
+        self.client.force_login(self.regular)
+        starred_item = next(
+            item for item in self.client.get(api_url).json()
+            if item["pk"] == str(self.experience.pk)
+        )
+        self.assertTrue(starred_item["fields"]["is_starred"])
+
+        self.client.force_login(self.editor)
+        editor_response = self.client.get(api_url)
+        unstarred_item = next(
+            item for item in editor_response.json()
+            if item["pk"] == str(self.experience.pk)
+        )
+        self.assertFalse(unstarred_item["fields"]["is_starred"])
+        self.assertNotIn("regular", editor_response.content.decode())
+
+        self.client.logout()
         self.assertNotContains(
             self.client.get(reverse("main:show_experience")), "Dibintangi oleh"
         )

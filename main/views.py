@@ -1,14 +1,12 @@
-import json
 from unicodedata import category
 
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -36,61 +34,63 @@ def show_main(request):
     }
     return render(request, "index.html", context)
 
-# JSON 
+def _filtered_experiences(request):
+    category_query = request.GET.get("category", "").strip()
+    sort_query = request.GET.get("sort", "").strip()
+
+    experiences = Experience.objects.annotate(
+        star_count=Count("starred_by")
+    ).prefetch_related("starred_by")
+    if category_query:
+        experiences = experiences.filter(category__iexact=category_query)
+
+    if sort_query == "a-z":
+        experiences = experiences.order_by("title")
+    elif sort_query == "z-a":
+        experiences = experiences.order_by("-title")
+    elif sort_query == "most-starred":
+        experiences = experiences.order_by("-star_count", "order", "pk")
+    # default is by order
+    return experiences
+
+# JSON
 def get_experience_json(request):
-      category_query = request.GET.get("category", "").strip()
-      sort_query = request.GET.get("sort", "").strip()
-
-      experiences = Experience.objects.annotate(star_count=Count("starred_by"))
-      if category_query:
-            experiences = experiences.filter(
-                  category__iexact = category_query
-            )
-
-      if sort_query == "a-z":
-            experiences = experiences.order_by("title")
-      elif sort_query == "z-a":
-            experiences = experiences.order_by("-title")
-      elif sort_query == "most-starred":
-            experiences = experiences.order_by("-star_count", "order", "pk")
-      # default is by order
-
-      experiences = list(experiences)
-      experiences_json = serializers.serialize(
-            "json",
-            experiences,
-            fields=(
-                  "order", "title", "company", "period", "category",
-                  "description", "tags",
-            ),
-      )
-      payload = json.loads(experiences_json)
-      for item, experience in zip(payload, experiences):
-            item["fields"]["star_count"] = experience.star_count
-      return HttpResponse(json.dumps(payload), content_type="application/json")
+    data = []
+    for experience in _filtered_experiences(request):
+        is_starred = request.user.is_authenticated and any(
+            user.pk == request.user.pk for user in experience.starred_by.all()
+        )
+        data.append({
+            "model": "main.experience",
+            "pk": str(experience.pk),
+            "fields": {
+                "order": experience.order,
+                "title": experience.title,
+                "company": experience.company,
+                "period": experience.period,
+                "category": experience.category,
+                "description": experience.description,
+                "tags": experience.tags,
+                "star_count": experience.star_count,
+                "is_starred": is_starred,
+            },
+        })
+    return JsonResponse(data, safe=False)
 
 # show experience
 def show_experience(request):
-        json_response = get_experience_json(request)
-        experiences = serializers.deserialize(
-            "json", json_response.content.decode("utf-8"), ignorenonexistent=True
-        )
+    experiences = _filtered_experiences(request)
 
-        experiences = [
-            experience.object for experience in experiences
-        ]
+    category_query = request.GET.get("category", "").strip()
+    sort_query = request.GET.get("sort", "").strip()
 
-        category_query = request.GET.get("category", "").strip()
-        sort_query = request.GET.get("sort", "").strip()
-      
-
-        context = {
+    context = {
         "name": "Muhammad Akmal Haqqani",
         "experience_list": experiences,
         "category_query" : category_query,
         "sort_query" : sort_query,
-        }
-        return render(request, "experience.html", context)
+    }
+    return render(request, "experience.html", context)
 
 # create experience 
 
