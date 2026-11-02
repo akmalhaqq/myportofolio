@@ -20,6 +20,8 @@ from django.urls import include, path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('main.urls')),
+    path('api/v1/', include('main.api_urls')),
+    path('api-auth/', include('rest_framework.urls')),
 ]
 
 handler403 = 'portofolio.views.permission_denied'
