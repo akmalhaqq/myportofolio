@@ -101,6 +101,8 @@ Kalau project pakai `requirements.txt`, install dependency-nya:
 pip install -r requirements.txt
 ```
 
+Salin `.env.example` menjadi `.env`, lalu isi `PROJECT_SECRET` dengan secret key acak milikmu. Untuk deployment, sediakan `PROJECT_SECRET` di environment server dan set `PRODUCTION=True`.
+
 Lalu jalankan development server:
 
 ```bash
