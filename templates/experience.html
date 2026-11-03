@@ -143,6 +143,9 @@
     {% if user.is_superuser %}
       {% include "components/experience_form_modal.html" %}
     {% endif %}
+    {% if perms.main.change_experience %}
+      {% include "components/experience_edit_modal.html" %}
+    {% endif %}
     {% csrf_token %}
     <script>
       const EXPERIENCE_ENDPOINT = "{% url 'api:experience-list' %}";
@@ -170,6 +173,10 @@
       const sortMenu = document.querySelector(".sort-dropdown__menu");
       const sortLabel = document.getElementById("experience-sort-label");
       const experienceForm = document.getElementById("experience-form");
+      const editExperienceForm = document.getElementById("edit-experience-form");
+      const editExperienceModal = document.getElementById("edit-experience-modal");
+      const EDITABLE_FIELDS = ["title", "company", "period", "category", "description", "tags"];
+      const experiencesById = new Map();
       const SEARCH_DEBOUNCE_DELAY = 300;
       let searchDebounceTimer;
       let experienceAbortController;
@@ -223,6 +230,7 @@
         const starApiUrl = STAR_API_URL_TEMPLATE.replace(ID_PLACEHOLDER, experienceId);
         const starUrl = STAR_URL_TEMPLATE.replace(ID_PLACEHOLDER, experienceId);
         const editUrl = EDIT_URL_TEMPLATE.replace(ID_PLACEHOLDER, experienceId);
+        const editApiUrl = DETAIL_API_URL_TEMPLATE.replace(ID_PLACEHOLDER, experienceId);
         const deleteApiUrl = DETAIL_API_URL_TEMPLATE.replace(ID_PLACEHOLDER, experienceId);
         const deleteUrl = DELETE_URL_TEMPLATE.replace(ID_PLACEHOLDER, experienceId);
         const deleteModalId = `delete-experience-${experienceId}`;
@@ -290,7 +298,8 @@
 
         const actionsHtml = CAN_EDIT
           ? `<div class="experience-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
-               <a href="${editUrl}" class="button">Edit</a>
+                <a href="${editUrl}" data-experience-id="${experienceId}"
+                  data-edit-url="${editApiUrl}" class="button">Edit</a>
                ${deleteHtml}
              </div>`
           : "";
@@ -330,12 +339,14 @@
           const experiences = await response.json();
           if (!Array.isArray(experiences)) throw new Error("Invalid experience data");
           experienceList.replaceChildren();
+          experiencesById.clear();
           if (experiences.length === 0) {
             showExperienceState("empty");
             return;
           }
 
           experiences.forEach((experience, index) => {
+            experiencesById.set(experience.id, experience);
             experienceList.appendChild(buildExperienceElement(experience, index));
           });
           showExperienceState("list");
@@ -473,6 +484,42 @@
         }
       });
 
+      if (editExperienceForm) {
+        experienceList.addEventListener("click", function (event) {
+          const link = event.target.closest("a[data-edit-url]");
+          if (!link || !isPlainClick(event)) return;
+          const experience = experiencesById.get(link.dataset.experienceId);
+          if (!experience) return;
+          event.preventDefault();
+          EDITABLE_FIELDS.forEach((field) => {
+            editExperienceForm.elements.namedItem(field).value = experience[field];
+          });
+          editExperienceForm.action = link.href;
+          editExperienceForm.dataset.apiUrl = link.dataset.editUrl;
+          editExperienceModal.showPopover();
+        });
+
+        editExperienceForm.addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const submitButton = editExperienceForm.querySelector('button[type="submit"]');
+          submitButton.disabled = true;
+          try {
+            const fields = new FormData(editExperienceForm);
+            const payload = Object.fromEntries(
+              EDITABLE_FIELDS.map((name) => [name, fields.get(name)]),
+            );
+            await writeExperience(editExperienceForm.dataset.apiUrl, "PATCH", payload);
+            editExperienceModal.hidePopover();
+            showToast("Berhasil", "Experience berhasil diperbarui.", "success");
+            await fetchExperiences(searchInput.value.trim());
+          } catch (error) {
+            showToast("Gagal mengubah Experience", error.message, "error");
+          } finally {
+            submitButton.disabled = false;
+          }
+        });
+      }
+
       if (experienceForm) {
         experienceForm.addEventListener("submit", async function (event) {
           event.preventDefault();
@@ -482,8 +529,7 @@
           try {
             const fields = new FormData(experienceForm);
             const payload = Object.fromEntries(
-              ["title", "company", "period", "category", "description", "tags"]
-                .map((name) => [name, fields.get(name)]),
+              EDITABLE_FIELDS.map((name) => [name, fields.get(name)]),
             );
             await writeExperience(EXPERIENCE_ENDPOINT, "POST", payload);
             experienceForm.reset();

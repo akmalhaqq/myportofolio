@@ -97,6 +97,8 @@ def show_experience(request):
     }
     if request.user.is_superuser:
         context["form"] = ExperienceForm()
+    if request.user.has_perm("main.change_experience"):
+        context["edit_form"] = ExperienceForm(auto_id="edit_%s")
     return render(request, "experience.html", context)
 
 # create experience 

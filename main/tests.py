@@ -906,6 +906,7 @@ class TugasFourTests(TestCase):
                     reverse("main:show_experience")
                 ).content.decode()
                 self.assertEqual('id="experience-form"' in content, can_create)
+                self.assertEqual('id="edit-experience-form"' in content, can_edit)
                 self.assertEqual(
                     'popovertarget="add-experience-modal"' in content,
                     can_create,
