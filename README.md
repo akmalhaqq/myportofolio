@@ -84,7 +84,7 @@ Beberapa elemen punya animasi saat masuk viewport, dibuat pakai CSS `view-timeli
 
 ### Prasyarat
 
-Python dan Django sudah harus terpasang.
+Siapkan Python 3. Instal dependensi proyek, termasuk Django dan Django REST Framework, dari `requirements.txt`.
 
 ### Menjalankan Project
 
@@ -95,7 +95,7 @@ git clone <repository-url>
 cd <repository-directory>
 ```
 
-Kalau project pakai `requirements.txt`, install dependency-nya:
+Instal dependensi proyek:
 
 ```bash
 pip install -r requirements.txt
@@ -103,9 +103,10 @@ pip install -r requirements.txt
 
 Salin `.env.example` menjadi `.env`, lalu isi `PROJECT_SECRET` dengan secret key acak milikmu. Untuk deployment, sediakan `PROJECT_SECRET` di environment server dan set `PRODUCTION=True`.
 
-Lalu jalankan development server:
+Terapkan migrasi database, lalu jalankan server lokal:
 
 ```bash
+python manage.py migrate
 python manage.py runserver
 ```
 
@@ -132,6 +133,14 @@ Setelah struktur HTML jadi, saya bangun layout pakai CSS Grid dan Flexbox. Beber
 
 Saya uji responsive behavior-nya di beberapa ukuran viewport, cek apakah konten masih enak dibaca dan tidak overflow.
 Di layar kecil, beberapa layout multi-kolom saya ubah jadi satu kolom, dan beberapa komponen saya sesuaikan lagi supaya tetap enak dipandang.
+
+### Progres Minggu Tugas 6
+
+Saya menerapkan pola DRF dari Projects di Tutorial 07 ke Experience. API Experience mendukung pencarian berdasarkan judul atau organisasi, filter kategori, pengurutan, dan star. Halaman Experience memakai API untuk memuat daftar dan menyimpan perubahan tanpa memuat ulang halaman. Saya juga menambahkan pratinjau langsung di modal edit agar perubahan bisa dilihat sebelum dikirim.
+
+- Halaman Experience tersedia di `/experience/` dan Browsable API di `/api/v1/experiences/`.
+- Server menentukan `order` saat Experience dibuat, mulai dari `1` jika belum ada data atau satu lebih besar dari urutan tertinggi. Saat diedit, urutannya tetap.
+- Jalankan `python manage.py test main` untuk menguji Experience dan Projects.
 
 # Pertanyaan Reflektif
 
@@ -272,6 +281,13 @@ XSS (_Cross-Site Scripting_) adalah serangan ketika seseorang memasukkan kode be
 Saat data ditampilkan melalui template Django menggunakan `{{ value }}`, Django secara bawaan melakukan _escaping_. Karakter seperti `<` dan `>` diubah agar ditampilkan sebagai teks biasa. Namun, data yang diambil melalui AJAX disusun kembali menjadi tampilan oleh JavaScript. Jika saya memasukkan data itu langsung ke `innerHTML`, perlindungan otomatis dari template Django tidak ikut berlaku. Masalahnya ada pada cara data dimasukkan ke halaman, bukan pada format JSON-nya.
 
 Form di sisi server juga memakai `strip_tags` untuk menghapus tag HTML dari input teks. Namun, `strip_tags` saja tidak menjamin data aman dari XSS. Karena itu, saya tetap melakukan _escaping_ saat menampilkan data melalui JavaScript, termasuk untuk data lama atau data yang masuk melalui jalur lain. Dengan begitu, teks yang menyerupai HTML ditampilkan sebagai teks biasa, bukan diproses sebagai kode.
+
+### Tugas 6
+
+1. **REST serta perbedaan `PUT` dan `PATCH`.** REST adalah gaya arsitektur yang memperlakukan data sebagai resource dengan alamat yang clear dan antarmuka yang seragam. Pada API Experience, `GET /api/v1/experiences/` membaca daftar, sedangkan `DELETE /api/v1/experiences/<id>/` menghapus satu entri. JSON hanya format representasi datanya. Untuk mengikuti REST, API juga perlu memakai metode HTTP sesuai maknanya dan menangani setiap request secara mandiri. `PUT` cocok untuk mengirim ulang representasi lengkap dari field yang bisa diedit, misalnya saat mengganti semua detail sebuah Experience. `PATCH` cocok untuk perubahan sebagian, misalnya hanya mengirim `{"title": "Teaching Assistant"}` untuk mengganti judul tanpa mengubah field lain.
+2. **Peran serializer di DRF.** `ExperienceSerializer` mengubah objek Django menjadi data yang bisa dirender sebagai JSON dan memvalidasi data yang dikirim pengguna sebelum disimpan. Daftar field eksplisit menentukan apa yang boleh keluar. Field seperti `star_count` dan `is_starred` dihitung oleh server dan hanya bisa dibaca. Dibanding merakit dictionary untuk `JsonResponse` seperti pada Tutorial 05, satu serializer dapat dipakai ulang untuk daftar, detail, dan hasil perubahan. Aturan validasi serta bentuk data lebih mudah dijaga konsisten.
+3. **Autentikasi dan otorisasi.** Autentikasi menentukan siapa yang mengirim request. Di proyek ini, `SessionAuthentication` memakai sesi login Django untuk mengenali pengguna. Otorisasi menentukan tindakan yang boleh dilakukan oleh pengguna tersebut. Permission class pada API Experience mengizinkan Editor memperbarui data dan membatasi tambah serta hapus untuk superuser. Pemeriksaan di server tetap diperlukan karena pengguna bisa mengirim request langsung ke API meskipun tombolnya disembunyikan di halaman.
+4. **CSRF dan pengujiannya.** Browser bisa ikut mengirim cookie sesi pada request ke situs tujuan. Token CSRF membantu server menolak request perubahan data yang dipicu dari situs lain dengan memanfaatkan sesi pengguna. Pada Experience, JavaScript menyertakan token lewat header `X-CSRFToken`. `force_authenticate()` menetapkan identitas pengguna secara langsung sehingga tidak menjalankan alur `SessionAuthentication` beserta pemeriksaan CSRF-nya. Tes memakai `APIClient(enforce_csrf_checks=True)` dan `.login()` untuk memastikan `POST` tanpa token mendapat `403` dan `POST` dengan token yang sah mendapat `201`.
 
 # AI Disclosure
 
@@ -528,3 +544,17 @@ AI paling membantu ketika saya perlu memecah requirement yang panjang menjadi la
 ## Kesimpulan
 
 Pada Tugas 5, saya menggunakan AI lewat diskusi yang berulang, dari memahami requirement sampai mengevaluasi kode. AI membantu brainstorming, implementasi, dan penyusunan test case.
+
+## AI Disclosure Tugas 6
+
+### Penggunaan AI dan pendekatan prompting
+
+Saya memakai Claude untuk membaca checklist Tutorial 7 dan Tugas 6, membandingkannya dengan proyek yang sudah ada, dan membantu implementasi serta membantu fix bug, dan menjadi pengajar praktikal saya. Saya meminta pekerjaan dibagi per tahap agar bisa saya tinjau dan commit sendiri. Bantuan AI mencakup membantu menyesuaikan code yang ada di tutorial dengan state projek saat ini, validasi serializer, tes penolakan akses.
+
+### Keterbatasan AI dan pengecekan hasil
+
+Hasil tes yang dibuat oleh AI tak bisa langsung dipercayai, saya tetap harus melakukan manual check melalui F12 untuk mengakses network untuk memastikan benar sudah di akses dari api/v1 beneran. Pemeriksaan browser lokal juga menemukan bahwa stylesheet lama masih terpakai, sehingga nomor versi stylesheet diperbarui dan tata letak pratinjau dicek kembali. Percobaan mengetik lalu menekan **Batal** memastikan draft tidak tersimpan. Saya meninjau hasil per tahap supaya memastikan sesuai recuirement.
+
+### Log Prompting
+
+Tautan room chat Tugas 6: `https://claude.ai/share/c03aabe6-404f-45c1-98af-2efaa9380d42`
