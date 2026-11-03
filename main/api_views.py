@@ -83,8 +83,7 @@ def experience_list(request):
 
     serializer = ExperienceSerializer(data=request.data, context={"request": request})
     serializer.is_valid(raise_exception=True)
-    last_experience = Experience.objects.order_by("-order").first()
-    serializer.save(order=last_experience.order + 1 if last_experience else 1)
+    serializer.save(order=Experience.next_order())
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 

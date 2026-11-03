@@ -37,6 +37,11 @@ class Experience(models.Model):
     class Meta:
         ordering = ["order"]
 
+    @classmethod
+    def next_order(cls):
+        highest_order = cls.objects.order_by("-order").values_list("order", flat=True).first()
+        return (highest_order or 0) + 1
+
     def __str__(self):
         return self.title
     

@@ -161,6 +161,34 @@ class MainTest(TestCase):
         self.assertEqual(str(self.experience), "Asisten Dosen PBP")
         self.assertEqual(self.experience.tag_list(), ["Teaching", "Mentoring"])
 
+    def test_experience_admin_assigns_order_and_ignores_submitted_order(self):
+        owner = User.objects.create_superuser(username="experience-admin")
+        self.client.force_login(owner)
+        payload = {
+            "title": "New Experience",
+            "company": self.experience.company,
+            "period": self.experience.period,
+            "category": self.experience.category,
+            "description": self.experience.description,
+            "tags": self.experience.tags,
+            "order": 999,
+            "_save": "Save",
+        }
+
+        response = self.client.post(reverse("admin:main_experience_add"), payload)
+        self.assertEqual(response.status_code, 302)
+        experience = Experience.objects.get(title=payload["title"])
+        self.assertEqual(experience.order, 2)
+
+        response = self.client.post(
+            reverse("admin:main_experience_change", args=[experience.pk]),
+            {**payload, "title": "Updated Experience"},
+        )
+        self.assertEqual(response.status_code, 302)
+        experience.refresh_from_db()
+        self.assertEqual(experience.title, "Updated Experience")
+        self.assertEqual(experience.order, 2)
+
     def test_experience_page(self):
         response = self.client.get(reverse("main:show_experience"))
         self.assertEqual(response.status_code, 200)

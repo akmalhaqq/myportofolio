@@ -136,9 +136,12 @@ class ExperienceAPITest(APITestCase):
         new_url = reverse("api:experience-detail", args=[response.data["id"]])
         response = self.client.put(new_url, {"title": "Incomplete"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.put(new_url, {**self.payload, "title": "Updated"}, format="json")
+        response = self.client.put(
+            new_url, {**self.payload, "title": "Updated", "order": 999}, format="json",
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["title"], "Updated")
+        self.assertEqual(Experience.objects.get(pk=response.data["id"]).order, 2)
         response = self.client.delete(new_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(response.content, b"")

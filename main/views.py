@@ -111,13 +111,7 @@ def create_experience(request):
     form = ExperienceForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        last_experience = Experience.objects.order_by("-order").first()
-
-        if last_experience:
-            form.instance.order = last_experience.order + 1
-        else:
-            form.instance.order = 1
-
+        form.instance.order = Experience.next_order()
         form.save()
 
         messages.success(
@@ -154,8 +148,7 @@ def create_experience_ajax(request):
     if not form.is_valid():
         return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
-    last_experience = Experience.objects.order_by("-order").first()
-    form.instance.order = last_experience.order + 1 if last_experience else 1
+    form.instance.order = Experience.next_order()
     experience = form.save()
     return JsonResponse(
         {"message": "Experience berhasil ditambahkan.", "pk": str(experience.pk)},
