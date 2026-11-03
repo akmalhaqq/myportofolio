@@ -151,6 +151,51 @@
   border-color: var(--accent);
 }
 
+.experience-edit-modal .project-form-modal__content {
+  width: min(100%, 960px);
+}
+
+.experience-edit-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 2rem;
+}
+
+.experience-edit-preview {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.experience-edit-preview h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.experience-edit-preview .form-help {
+  margin-bottom: 1.5rem;
+}
+
+.experience-edit-preview h4 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+@media (max-width: 700px) {
+  .experience-edit-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .experience-edit-preview {
+    position: static;
+  }
+}
+
 .experience-item:hover .experience-index {
   background: var(--accent);
   border-color: var(--accent);

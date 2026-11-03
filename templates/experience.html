@@ -485,6 +485,24 @@
       });
 
       if (editExperienceForm) {
+        const editPreview = editExperienceModal.querySelector(".experience-edit-preview");
+
+        function updateEditPreview() {
+          for (const field of ["category", "period", "title", "company", "description"]) {
+            editPreview.querySelector(`[data-preview="${field}"]`).textContent =
+              editExperienceForm.elements.namedItem(field).value;
+          }
+          const tags = editExperienceForm.elements.namedItem("tags").value
+            .split(",").map((tag) => tag.trim()).filter(Boolean);
+          editPreview.querySelector('[data-preview="tags"]').replaceChildren(
+            ...tags.map((tag) => {
+              const span = document.createElement("span");
+              span.textContent = tag;
+              return span;
+            }),
+          );
+        }
+
         experienceList.addEventListener("click", function (event) {
           const link = event.target.closest("a[data-edit-url]");
           if (!link || !isPlainClick(event)) return;
@@ -494,10 +512,14 @@
           EDITABLE_FIELDS.forEach((field) => {
             editExperienceForm.elements.namedItem(field).value = experience[field];
           });
+          updateEditPreview();
           editExperienceForm.action = link.href;
           editExperienceForm.dataset.apiUrl = link.dataset.editUrl;
           editExperienceModal.showPopover();
         });
+
+        editExperienceForm.addEventListener("input", updateEditPreview);
+        editExperienceForm.addEventListener("change", updateEditPreview);
 
         editExperienceForm.addEventListener("submit", async function (event) {
           event.preventDefault();

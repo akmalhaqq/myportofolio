@@ -1,6 +1,6 @@
 <div
   id="edit-experience-modal"
-  class="project-form-modal"
+  class="project-form-modal experience-edit-modal"
   popover="auto"
   role="dialog"
   aria-modal="true"
@@ -27,15 +27,30 @@
 
     <form id="edit-experience-form" method="post" class="project-form">
       {% csrf_token %}
-      {% for field in edit_form %}
-        <div class="form-group">
-          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field }}
-          {% if field.help_text %}
-            <small class="form-help">{{ field.help_text }}</small>
-          {% endif %}
+      <div class="experience-edit-layout">
+        <div>
+          {% for field in edit_form %}
+            <div class="form-group">
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+                <small class="form-help">{{ field.help_text }}</small>
+              {% endif %}
+            </div>
+          {% endfor %}
         </div>
-      {% endfor %}
+        <aside class="experience-edit-preview" aria-labelledby="experience-edit-preview-title">
+          <h3 id="experience-edit-preview-title">Pratinjau</h3>
+          <p class="form-help">Perubahan ini belum disimpan.</p>
+          <div class="experience-meta">
+            <span data-preview="category"></span> · <span data-preview="period"></span>
+          </div>
+          <h4 data-preview="title"></h4>
+          <p class="experience-company" data-preview="company"></p>
+          <p class="experience-description" data-preview="description"></p>
+          <div class="experience-tags" data-preview="tags"></div>
+        </aside>
+      </div>
 
       <div class="project-form-modal__actions">
         <button
