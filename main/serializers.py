@@ -62,14 +62,26 @@ class ExperienceSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "order"]
 
-    def validate(self, attrs):
-        for field in ("title", "company", "period", "description", "tags"):
-            if field in attrs:
-                value = strip_tags(attrs[field]).strip()
-                if not value:
-                    raise serializers.ValidationError({field: "This field cannot contain only HTML tags."})
-                attrs[field] = value
-        return attrs
+    def _clean_text(self, value):
+        value = strip_tags(value).strip()
+        if not value:
+            raise serializers.ValidationError("This field cannot contain only HTML tags.")
+        return value
+
+    def validate_title(self, value):
+        return self._clean_text(value)
+
+    def validate_company(self, value):
+        return self._clean_text(value)
+
+    def validate_period(self, value):
+        return self._clean_text(value)
+
+    def validate_description(self, value):
+        return self._clean_text(value)
+
+    def validate_tags(self, value):
+        return self._clean_text(value)
 
     def get_star_count(self, obj):
         return obj.starred_by.count()

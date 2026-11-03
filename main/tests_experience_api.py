@@ -114,7 +114,9 @@ class ExperienceAPITest(APITestCase):
             self.client.delete(self.detail_url).status_code,
             status.HTTP_403_FORBIDDEN,
         )
-        self.assertTrue(Experience.objects.filter(pk=self.experience.pk).exists())
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Replaced by Editor")
+        self.assertEqual(Experience.objects.count(), 1)
 
     def test_owner_can_create_put_and_delete_with_existing_ordering(self):
         self.client.force_authenticate(user=self.owner)
@@ -147,6 +149,9 @@ class ExperienceAPITest(APITestCase):
         for changes, field in (
             ({"title": "<b></b>"}, "title"),
             ({"company": "<img src=x>"}, "company"),
+            ({"period": "<b></b>"}, "period"),
+            ({"description": "<b></b>"}, "description"),
+            ({"tags": "<b></b>"}, "tags"),
             ({"category": "Invalid"}, "category"),
         ):
             with self.subTest(changes=changes):
@@ -155,11 +160,16 @@ class ExperienceAPITest(APITestCase):
                 )
                 self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
                 self.assertIn(field, response.data)
-        response = self.client.post(
-            self.list_url, {**self.payload, "title": "<b>Clean</b>"}, format="json",
-        )
+        cleaned = {
+            field: f"<b>{value}</b>"
+            for field, value in self.payload.items() if field != "category"
+        }
+        response = self.client.post(self.list_url, {
+            **self.payload, **cleaned,
+        }, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["title"], "Clean")
+        for field in cleaned:
+            self.assertEqual(response.data[field], self.payload[field])
 
     def test_star_requires_login_and_uses_current_account(self):
         self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_403_FORBIDDEN)
