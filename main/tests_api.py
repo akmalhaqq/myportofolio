@@ -60,9 +60,13 @@ class ProjectAPITest(APITestCase):
         for user in (None, self.visitor):
             with self.subTest(user=user):
                 self.client.force_authenticate(user=user)
+                expected_create_status = (
+                    status.HTTP_401_UNAUTHORIZED if user is None
+                    else status.HTTP_403_FORBIDDEN
+                )
                 self.assertEqual(
                     self.client.post(self.list_url, self.payload, format="json").status_code,
-                    status.HTTP_403_FORBIDDEN,
+                    expected_create_status,
                 )
                 self.assertEqual(
                     self.client.patch(self.detail_url, {"title": "Changed"}, format="json").status_code,
@@ -82,6 +86,38 @@ class ProjectAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(Project.objects.filter(pk=response.data["id"]).exists())
         self.assertEqual(response.data["title"], self.payload["title"])
+
+    def _login_with_token(self, username):
+        response = self.client.post(
+            reverse("api:api_token_auth"),
+            {"username": username, "password": "test-password"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        token = response.data["token"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
+
+    def test_owner_can_create_with_token_until_logout(self):
+        self._login_with_token("owner")
+        created = self.client.post(self.list_url, self.payload, format="json")
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Project.objects.filter(pk=created.data["id"]).exists())
+
+        logout_url = reverse("api:api_logout")
+        logout = self.client.post(logout_url)
+        self.assertEqual(logout.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(logout.content, b"")
+        rejected_logout = self.client.post(logout_url)
+        self.assertEqual(rejected_logout.status_code, status.HTTP_401_UNAUTHORIZED)
+        rejected_create = self.client.post(self.list_url, self.payload, format="json")
+        self.assertEqual(rejected_create.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(Project.objects.count(), 2)
+
+    def test_visitor_token_cannot_create_project(self):
+        self._login_with_token("visitor")
+        response = self.client.post(self.list_url, self.payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Project.objects.count(), 1)
 
     def test_serializer_rejects_invalid_input_and_strips_tags(self):
         self.client.force_authenticate(user=self.owner)

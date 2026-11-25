@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.authentication import SessionAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import (
     api_view, authentication_classes, permission_classes,
 )
@@ -13,8 +13,15 @@ from main.serializers import ExperienceSerializer, ProjectSerializer
 from main.views import _filtered_experiences
 
 
+@api_view(["POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def api_logout(request):
+    request.auth.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 @api_view(["GET", "HEAD", "POST"])
-@authentication_classes([SessionAuthentication])
 @permission_classes([IsPortfolioOwnerOrReadOnly])
 def project_list(request):
     if request.method in ("GET", "HEAD"):
